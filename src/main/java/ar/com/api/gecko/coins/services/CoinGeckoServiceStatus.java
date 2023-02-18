@@ -1,5 +1,6 @@
 package ar.com.api.gecko.coins.services;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
@@ -9,13 +10,17 @@ import lombok.extern.slf4j.Slf4j;
 import reactor.core.publisher.Mono;
 
 @Service
-@AllArgsConstructor
 @Slf4j
 public class CoinGeckoServiceStatus {
  
- private static String URL_PING_SERVICE = "/ping";
+ @Value("${api.ping}")
+ private String URL_PING_SERVICE;
 
  private WebClient webClient;
+
+ public CoinGeckoServiceStatus(WebClient wClient) {
+  this.webClient = wClient;
+ }
 
  public Mono<Ping> getStatusCoinGeckoService() {
   
