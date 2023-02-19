@@ -6,9 +6,11 @@ coins:
   baseURL: 'api/coins'
   healthAPI: '/health-api'
   coinList: '/list'
+  coinMarket: '/markets'
 
 ## Url Coin Gecko RestService
 api:
   urlCoinGecko: 'https://api.coingecko.com/api/v3'
   ping: '/ping'
   coinList: '/coins/list'
+  markets: '/coins/markets'

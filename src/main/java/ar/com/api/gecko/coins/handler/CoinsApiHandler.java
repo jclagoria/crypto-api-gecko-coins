@@ -4,13 +4,13 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
-import ar.com.api.gecko.coins.dto.CoinBase;
-import ar.com.api.gecko.coins.dto.Ping;
+import ar.com.api.gecko.coins.model.CoinBase;
+import ar.com.api.gecko.coins.model.Market;
+import ar.com.api.gecko.coins.model.Ping;
 import ar.com.api.gecko.coins.services.CoinGeckoServiceStatus;
 import ar.com.api.gecko.coins.services.CoinsGeckoService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 @Component
@@ -36,6 +36,29 @@ public class CoinsApiHandler {
      public Mono<ServerResponse> getListOfCoins(ServerRequest sRequest) {
      
           return ServerResponse
-               .ok().body(coinsGeckoService.getListOfCoins(), CoinBase.class);
+               .ok()
+               .body(
+                    coinsGeckoService.getListOfCoins(), 
+                    CoinBase.class);
      }
+
+     public Mono<ServerResponse> getMarkets(ServerRequest sRequest) {          
+          
+          String vsCurrecy = sRequest.queryParam("vsCurrency").get();
+
+          String idsCurrency = null;
+          String category = null;
+          String order = null;
+          int perPage = 0;
+          int numPage = 0;
+          boolean sparkline = false;
+          String priceChangePercentage = null;
+
+          return ServerResponse
+               .ok()
+               .body(
+                     coinsGeckoService.getListOfMarkets(vsCurrecy),
+                     Market.class);
+     }
+
 }
