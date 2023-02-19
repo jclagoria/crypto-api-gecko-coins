@@ -39,8 +39,7 @@ public class ApiRouter {
             .GET(URL_SERVICE_API + URL_COINS_LIST_API, 
                         handler::getListOfCoins)            
             .GET(URL_SERVICE_API + URL_COINS_MARKETS_API, 
-                 RequestPredicates.queryParam("vsCurrency", vsCurrency -> true)
-                 ,                 
+                 RequestPredicates.accept(MediaType.APPLICATION_JSON),                 
                  handler::getMarkets)            
             .build();
 

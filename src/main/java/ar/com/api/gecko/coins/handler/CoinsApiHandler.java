@@ -4,6 +4,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
+import ar.com.api.gecko.coins.dto.MarketDTO;
 import ar.com.api.gecko.coins.model.CoinBase;
 import ar.com.api.gecko.coins.model.Market;
 import ar.com.api.gecko.coins.model.Ping;
@@ -42,22 +43,24 @@ public class CoinsApiHandler {
                     CoinBase.class);
      }
 
-     public Mono<ServerResponse> getMarkets(ServerRequest sRequest) {          
-          
-          String vsCurrecy = sRequest.queryParam("vsCurrency").get();
+     public Mono<ServerResponse> getMarkets(ServerRequest sRequest) {
 
-          String idsCurrency = null;
-          String category = null;
-          String order = null;
-          int perPage = 0;
-          int numPage = 0;
-          boolean sparkline = false;
-          String priceChangePercentage = null;
-
+          MarketDTO marketFilter = MarketDTO
+                    .builder()
+                    .vsCurrecy(sRequest.queryParam("vsCurrency"))
+                    .order(sRequest.queryParam("order"))
+                    .perPage(sRequest.queryParam("perPage"))
+                    .numPage(sRequest.queryParam("numPage"))
+                    .sparkline(sRequest.queryParam("sparkline"))
+                    .priceChangePercentage(sRequest.queryParam("priceChangePercentage"))
+                    .idsCurrency(sRequest.queryParam("idsCurrency"))
+                    .category(sRequest.queryParam("category"))
+                    .build();
+                    
           return ServerResponse
                .ok()
                .body(
-                     coinsGeckoService.getListOfMarkets(vsCurrecy),
+                     coinsGeckoService.getListOfMarkets(marketFilter),
                      Market.class);
      }
 
