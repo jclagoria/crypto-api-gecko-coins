@@ -1,4 +1,4 @@
-package ar.com.api.gecko.coins.dto;
+package ar.com.api.gecko.coins.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
