@@ -26,21 +26,27 @@ public class ApiRouter {
  @Value("${coins.coinMarket}")
  private String URL_COINS_MARKETS_API;
  
+ @Value("${coins.coinTickers}")
+ private String URL_COINS_TICKERS_BY_ID;
+
  @Bean
  public RouterFunction<ServerResponse> route(CoinsApiHandler handler) {
 
   return RouterFunctions
             .route()
             .GET(URL_SERVICE_API + URL_HEALTH_GECKO_API, 
-                        handler::getStatusServiceCoinGecko)            
+                         handler::getStatusServiceCoinGecko)            
             .GET(URL_SERVICE_API + URL_COINS_LIST_API, 
-                        handler::getListOfCoins)            
+                         handler::getListOfCoins)            
             .GET(URL_SERVICE_API + URL_COINS_MARKETS_API, 
-                 RequestPredicates.accept(MediaType.APPLICATION_JSON),                 
-                 handler::getMarkets)
+                         RequestPredicates.accept(MediaType.APPLICATION_JSON),                 
+                         handler::getMarkets)
             .GET(URL_SERVICE_API + "/{idCoin}", 
-                 RequestPredicates.accept(MediaType.APPLICATION_JSON),
-                 handler::getCoinById)            
+                         RequestPredicates.accept(MediaType.APPLICATION_JSON),
+                         handler::getCoinById)
+            .GET(URL_SERVICE_API + URL_COINS_TICKERS_BY_ID, 
+                         RequestPredicates.accept(MediaType.APPLICATION_JSON),
+                         handler::getTickersById)
             .build();
 
  }

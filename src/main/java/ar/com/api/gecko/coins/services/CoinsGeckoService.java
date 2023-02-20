@@ -6,8 +6,10 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import ar.com.api.gecko.coins.dto.CoinFilterDTO;
 import ar.com.api.gecko.coins.dto.MarketDTO;
+import ar.com.api.gecko.coins.dto.TickerByIdDTO;
 import ar.com.api.gecko.coins.model.CoinBase;
 import ar.com.api.gecko.coins.model.CoinInfo;
+import ar.com.api.gecko.coins.model.CoinTickerById;
 import ar.com.api.gecko.coins.model.Market;
 import reactor.core.publisher.Flux;
 
@@ -25,6 +27,9 @@ public class CoinsGeckoService {
 
  @Value("${api.markets}")
  private String URL_MARKETS_LIST;
+
+ @Value("${api.tickersById}")
+ private String URL_TICKERS_BY_ID;
 
  private WebClient webClient;
 
@@ -65,5 +70,18 @@ public class CoinsGeckoService {
                   .onErrorComplete();
  }
 
+ public Flux<CoinTickerById> getTickerById(TickerByIdDTO tickerByIdDTO) {
+
+        String idCoin = String.format(URL_TICKERS_BY_ID, tickerByIdDTO.getIdCoin());
+
+        return webClient
+                .get()
+                .uri(idCoin
+                        + tickerByIdDTO.getUrlFilterString())
+                .retrieve()
+                .bodyToFlux(CoinTickerById.class)
+                .doOnError(throwable -> log.error("The service is unavailable!", throwable))
+                .onErrorComplete();
+ }
 
 }

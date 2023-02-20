@@ -6,10 +6,12 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 
 import ar.com.api.gecko.coins.dto.CoinFilterDTO;
 import ar.com.api.gecko.coins.dto.MarketDTO;
+import ar.com.api.gecko.coins.dto.TickerByIdDTO;
 import ar.com.api.gecko.coins.model.CoinBase;
 import ar.com.api.gecko.coins.model.CoinInfo;
 import ar.com.api.gecko.coins.model.Market;
 import ar.com.api.gecko.coins.model.Ping;
+import ar.com.api.gecko.coins.model.Tickers;
 import ar.com.api.gecko.coins.services.CoinGeckoServiceStatus;
 import ar.com.api.gecko.coins.services.CoinsGeckoService;
 import lombok.AllArgsConstructor;
@@ -91,6 +93,28 @@ public class CoinsApiHandler {
                     .body(
                          coinsGeckoService.getCoinById(coinFilter), 
                          CoinInfo.class);
+     }
+
+
+     public Mono<ServerResponse> getTickersById(ServerRequest sRequest) {
+
+          log.info("In getTickersById");
+
+          TickerByIdDTO tickerbyIdDto = TickerByIdDTO
+                              .builder()
+                              .idCoin(sRequest.pathVariable("idCoin"))
+                              .order(sRequest.queryParam("order"))
+                              .page(sRequest.queryParam("page"))
+                              .exchangeIds(sRequest.queryParam("exchangeIds"))
+                              .includeExchangeLogo(sRequest.queryParam("includeExchangeLogo"))
+                              .depth(sRequest.queryParam("depth"))
+                              .build();
+
+          return ServerResponse
+                    .ok()
+                    .body(coinsGeckoService
+                              .getTickerById(tickerbyIdDto), 
+                         Tickers.class);
      }
 
 }

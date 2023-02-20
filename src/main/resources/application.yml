@@ -7,6 +7,7 @@ coins:
   healthAPI: '/health-api'
   coinList: '/list'
   coinMarket: '/markets'
+  coinTickers: '/{idCoin}/tickers'
 
 ## Url Coin Gecko RestService
 api:
@@ -15,3 +16,4 @@ api:
   coin: '/coins'
   coinList: '/coins/list'
   markets: '/coins/markets'
+  tickersById: '/coins/%s/tickers'

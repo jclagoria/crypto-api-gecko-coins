@@ -1,5 +1,6 @@
 package ar.com.api.gecko.coins.model;
 
+import java.io.Serializable;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
