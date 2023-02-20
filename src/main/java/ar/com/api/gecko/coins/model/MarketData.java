@@ -11,7 +11,7 @@ import lombok.ToString;
 
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class MarketData {
+public class MarketData implements Serializable {
  
  @ToString.Exclude
  @EqualsAndHashCode.Exclude

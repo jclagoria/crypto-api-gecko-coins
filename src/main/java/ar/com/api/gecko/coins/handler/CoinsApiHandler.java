@@ -1,7 +1,5 @@
 package ar.com.api.gecko.coins.handler;
 
-import java.util.Optional;
-
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
@@ -29,16 +27,18 @@ public class CoinsApiHandler {
 
      public Mono<ServerResponse> getStatusServiceCoinGecko(ServerRequest serverRequest) {
 
-     log.info("In getStatusServiceCoinGecko");
+          log.info("In getStatusServiceCoinGecko");
 
-     return ServerResponse
-                    .ok()
-                    .body(
-                         serviceStatus.getStatusCoinGeckoService(), 
-                         Ping.class);
+          return ServerResponse
+                         .ok()
+                         .body(
+                              serviceStatus.getStatusCoinGeckoService(), 
+                              Ping.class);
      }
 
      public Mono<ServerResponse> getListOfCoins(ServerRequest sRequest) {
+
+          log.info("In getListOfCoins");
      
           return ServerResponse
                .ok()
@@ -48,6 +48,8 @@ public class CoinsApiHandler {
      }
 
      public Mono<ServerResponse> getMarkets(ServerRequest sRequest) {
+
+          log.info("In getMarkets");
 
           MarketDTO marketFilter = MarketDTO
                     .builder()
@@ -70,6 +72,8 @@ public class CoinsApiHandler {
 
      public Mono<ServerResponse> getCoinById(ServerRequest sRequest) {
           
+          log.info("In getCoinById");
+
           CoinFilterDTO coinFilter = CoinFilterDTO
                               .builder()
                               .idCoin(sRequest.pathVariable("idCoin"))

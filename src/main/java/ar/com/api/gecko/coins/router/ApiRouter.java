@@ -4,17 +4,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
-import org.springframework.web.reactive.function.server.RequestPredicate;
 import org.springframework.web.reactive.function.server.RequestPredicates;
 import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.RouterFunctions;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
 import ar.com.api.gecko.coins.handler.CoinsApiHandler;
-import lombok.extern.slf4j.Slf4j;
 
 @Configuration
-@Slf4j
 public class ApiRouter {
 
  @Value("${coins.baseURL}") 
@@ -47,8 +44,5 @@ public class ApiRouter {
             .build();
 
  }
-
- //
-                  
 
 }

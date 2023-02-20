@@ -1,6 +1,8 @@
 package ar.com.api.gecko.coins.model;
 
-public class IcoData {
+import java.io.Serializable;
+
+public class IcoData implements Serializable {
  
  
 
