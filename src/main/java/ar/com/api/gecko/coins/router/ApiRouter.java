@@ -40,7 +40,10 @@ public class ApiRouter {
                         handler::getListOfCoins)            
             .GET(URL_SERVICE_API + URL_COINS_MARKETS_API, 
                  RequestPredicates.accept(MediaType.APPLICATION_JSON),                 
-                 handler::getMarkets)            
+                 handler::getMarkets)
+            .GET(URL_SERVICE_API + "/{idCoin}", 
+                 RequestPredicates.accept(MediaType.APPLICATION_JSON),
+                 handler::getCoinById)            
             .build();
 
  }

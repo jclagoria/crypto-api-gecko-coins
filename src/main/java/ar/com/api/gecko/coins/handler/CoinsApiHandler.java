@@ -1,11 +1,15 @@
 package ar.com.api.gecko.coins.handler;
 
+import java.util.Optional;
+
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
+import ar.com.api.gecko.coins.dto.CoinFilterDTO;
 import ar.com.api.gecko.coins.dto.MarketDTO;
 import ar.com.api.gecko.coins.model.CoinBase;
+import ar.com.api.gecko.coins.model.CoinInfo;
 import ar.com.api.gecko.coins.model.Market;
 import ar.com.api.gecko.coins.model.Ping;
 import ar.com.api.gecko.coins.services.CoinGeckoServiceStatus;
@@ -62,6 +66,27 @@ public class CoinsApiHandler {
                .body(
                      coinsGeckoService.getListOfMarkets(marketFilter),
                      Market.class);
+     }
+
+     public Mono<ServerResponse> getCoinById(ServerRequest sRequest) {
+          
+          CoinFilterDTO coinFilter = CoinFilterDTO
+                              .builder()
+                              .idCoin(sRequest.pathVariable("idCoin"))
+                              .localization(sRequest.queryParam("localization")) 
+                              .tickers(sRequest.queryParam("tickers"))
+                              .marketData(sRequest.queryParam("marketData"))
+                              .communityData(sRequest.queryParam("communityData"))
+                              .developerData(sRequest.queryParam("developerData"))
+                              .sparkline(sRequest.queryParam("sparkline"))
+                              .build();
+                              
+
+          return ServerResponse
+                    .ok()
+                    .body(
+                         coinsGeckoService.getCoinById(coinFilter), 
+                         CoinInfo.class);
      }
 
 }

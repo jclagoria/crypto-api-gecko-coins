@@ -4,8 +4,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import ar.com.api.gecko.coins.dto.CoinFilterDTO;
 import ar.com.api.gecko.coins.dto.MarketDTO;
 import ar.com.api.gecko.coins.model.CoinBase;
+import ar.com.api.gecko.coins.model.CoinInfo;
 import ar.com.api.gecko.coins.model.Market;
 import reactor.core.publisher.Flux;
 
@@ -15,6 +17,9 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class CoinsGeckoService {
 
+ @Value("${api.coin}")     
+ private String URL_COIN;
+      
  @Value("${api.coinList}")
  private String URL_COINS_LIST; 
 
@@ -40,35 +45,25 @@ public class CoinsGeckoService {
 
  public Flux<Market> getListOfMarkets(MarketDTO marketFilter) {  
   
-  StringBuilder filterQuery = new StringBuilder();
-  filterQuery.append("?vs_currency=").append(marketFilter.getVsCurrecy().get())
-        .append("&order=").append(marketFilter.getOrder().orElse("market_cap_desc"))
-        .append("&per_page=").append(marketFilter.getPerPage().orElse("100"))
-        .append("&page=").append(marketFilter.getNumPage().orElse("1"))
-        .append("&sparkline=").append(marketFilter.getSparkline().orElse("false"));
-
-  if(marketFilter.getIdsCurrency().isPresent())
-        filterQuery
-                .append("&ids=")
-                .append(marketFilter.getIdsCurrency().get());
-  
-  if(marketFilter.getCategory().isPresent())
-        filterQuery
-                .append("&category=")
-                .append(marketFilter.getCategory().get());
-
-  if(marketFilter.getPriceChangePercentage().isPresent())
-        filterQuery
-                .append("&price_change_percentage")
-                .append(marketFilter.getPriceChangePercentage().get());
-
   return webClient
           .get()
-          .uri(URL_MARKETS_LIST + filterQuery.toString())
+          .uri(URL_MARKETS_LIST + marketFilter.getUrlFilterString())
           .retrieve()
           .bodyToFlux(Market.class)
           .doOnError(throwable -> log.error("The service is unavailable!", throwable))
           .onErrorComplete();
  }
+
+ public Flux<CoinInfo> getCoinById(CoinFilterDTO idFilter) {
+
+      return webClient
+                  .get()
+                  .uri(URL_COIN + idFilter.getUrlFilterString())
+                  .retrieve()
+                  .bodyToFlux(CoinInfo.class)
+                  .doOnError(throwable -> log.error("The service is unavailable!", throwable))
+                  .onErrorComplete();
+ }
+
 
 }
