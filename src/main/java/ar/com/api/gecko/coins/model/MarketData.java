@@ -1,5 +1,6 @@
 package ar.com.api.gecko.coins.model;
 
+import java.io.Serializable;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -11,7 +12,7 @@ import lombok.ToString;
 
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class MarketData {
+public class MarketData implements Serializable {
  
  @ToString.Exclude
  @EqualsAndHashCode.Exclude

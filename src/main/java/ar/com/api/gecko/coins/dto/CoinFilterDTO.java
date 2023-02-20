@@ -1,6 +1,5 @@
 package ar.com.api.gecko.coins.dto;
 
-import java.lang.StackWalker.Option;
 import java.util.Optional;
 
 import lombok.Builder;

@@ -4,17 +4,14 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
-import org.springframework.web.reactive.function.server.RequestPredicate;
 import org.springframework.web.reactive.function.server.RequestPredicates;
 import org.springframework.web.reactive.function.server.RouterFunction;
 import org.springframework.web.reactive.function.server.RouterFunctions;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
 import ar.com.api.gecko.coins.handler.CoinsApiHandler;
-import lombok.extern.slf4j.Slf4j;
 
 @Configuration
-@Slf4j
 public class ApiRouter {
 
  @Value("${coins.baseURL}") 
@@ -29,26 +26,29 @@ public class ApiRouter {
  @Value("${coins.coinMarket}")
  private String URL_COINS_MARKETS_API;
  
+ @Value("${coins.coinTickers}")
+ private String URL_COINS_TICKERS_BY_ID;
+
  @Bean
  public RouterFunction<ServerResponse> route(CoinsApiHandler handler) {
 
   return RouterFunctions
             .route()
             .GET(URL_SERVICE_API + URL_HEALTH_GECKO_API, 
-                        handler::getStatusServiceCoinGecko)            
+                         handler::getStatusServiceCoinGecko)            
             .GET(URL_SERVICE_API + URL_COINS_LIST_API, 
-                        handler::getListOfCoins)            
+                         handler::getListOfCoins)            
             .GET(URL_SERVICE_API + URL_COINS_MARKETS_API, 
-                 RequestPredicates.accept(MediaType.APPLICATION_JSON),                 
-                 handler::getMarkets)
+                         RequestPredicates.accept(MediaType.APPLICATION_JSON),                 
+                         handler::getMarkets)
             .GET(URL_SERVICE_API + "/{idCoin}", 
-                 RequestPredicates.accept(MediaType.APPLICATION_JSON),
-                 handler::getCoinById)            
+                         RequestPredicates.accept(MediaType.APPLICATION_JSON),
+                         handler::getCoinById)
+            .GET(URL_SERVICE_API + URL_COINS_TICKERS_BY_ID, 
+                         RequestPredicates.accept(MediaType.APPLICATION_JSON),
+                         handler::getTickersById)
             .build();
 
  }
-
- //
-                  
 
 }
