@@ -12,5 +12,6 @@ coins:
 api:
   urlCoinGecko: 'https://api.coingecko.com/api/v3'
   ping: '/ping'
+  coin: '/coins'
   coinList: '/coins/list'
   markets: '/coins/markets'

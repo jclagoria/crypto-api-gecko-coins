@@ -1,24 +1,23 @@
 package ar.com.api.gecko.coins.model;
 
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class Roi {
+public class ReposUrl {
  
- @ToString.Exclude 
- @JsonProperty("times")
- private double times;
+ @ToString.Exclude
+ @JsonProperty("github")
+ private List<String> github;
 
- @JsonProperty("currency")
- private String currency;
-
- @JsonProperty("percentage")
- private double percentage;
+ @ToString.Exclude
+ @JsonProperty("bitbucket")
+ private List<Object> bitbucket;
 
 }
