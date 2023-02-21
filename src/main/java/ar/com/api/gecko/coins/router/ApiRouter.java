@@ -29,6 +29,9 @@ public class ApiRouter {
  @Value("${coins.coinTickers}")
  private String URL_COINS_TICKERS_BY_ID;
 
+ @Value("${coins.coinHistory}")
+ private String ULR_COINS_HISTORY_BY_ID;
+
  @Bean
  public RouterFunction<ServerResponse> route(CoinsApiHandler handler) {
 
@@ -47,6 +50,9 @@ public class ApiRouter {
             .GET(URL_SERVICE_API + URL_COINS_TICKERS_BY_ID, 
                          RequestPredicates.accept(MediaType.APPLICATION_JSON),
                          handler::getTickersById)
+            .GET(URL_SERVICE_API + ULR_COINS_HISTORY_BY_ID, 
+                         RequestPredicates.accept(MediaType.APPLICATION_JSON),
+                         handler::getHistoryOfCoin)
             .build();
 
  }
