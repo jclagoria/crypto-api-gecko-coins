@@ -5,9 +5,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import ar.com.api.gecko.coins.dto.CoinFilterDTO;
+import ar.com.api.gecko.coins.dto.HistoryCoinDTO;
 import ar.com.api.gecko.coins.dto.MarketDTO;
 import ar.com.api.gecko.coins.dto.TickerByIdDTO;
 import ar.com.api.gecko.coins.model.CoinBase;
+import ar.com.api.gecko.coins.model.CoinHistoryById;
 import ar.com.api.gecko.coins.model.CoinInfo;
 import ar.com.api.gecko.coins.model.CoinTickerById;
 import ar.com.api.gecko.coins.model.Market;
@@ -30,6 +32,9 @@ public class CoinsGeckoService {
 
  @Value("${api.tickersById}")
  private String URL_TICKERS_BY_ID;
+
+ @Value("${api.historyCoin}")
+ private String URL_HISTORY_COIN;
 
  private WebClient webClient;
 
@@ -80,6 +85,19 @@ public class CoinsGeckoService {
                         + tickerByIdDTO.getUrlFilterString())
                 .retrieve()
                 .bodyToFlux(CoinTickerById.class)
+                .doOnError(throwable -> log.error("The service is unavailable!", throwable))
+                .onErrorComplete();
+ }
+
+ public Flux<CoinHistoryById> getCoinHistoryByIdAndDate(HistoryCoinDTO coinFilter) {
+
+        String urlHistoryCoin = String.format(URL_HISTORY_COIN, coinFilter.getIdCoin());
+
+        return webClient
+                .get()
+                .uri(urlHistoryCoin + coinFilter.getUrlFilterString())
+                .retrieve()
+                .bodyToFlux(CoinHistoryById.class)
                 .doOnError(throwable -> log.error("The service is unavailable!", throwable))
                 .onErrorComplete();
  }

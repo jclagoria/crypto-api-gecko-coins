@@ -5,9 +5,11 @@ import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 
 import ar.com.api.gecko.coins.dto.CoinFilterDTO;
+import ar.com.api.gecko.coins.dto.HistoryCoinDTO;
 import ar.com.api.gecko.coins.dto.MarketDTO;
 import ar.com.api.gecko.coins.dto.TickerByIdDTO;
 import ar.com.api.gecko.coins.model.CoinBase;
+import ar.com.api.gecko.coins.model.CoinHistoryById;
 import ar.com.api.gecko.coins.model.CoinInfo;
 import ar.com.api.gecko.coins.model.Market;
 import ar.com.api.gecko.coins.model.Ping;
@@ -115,6 +117,24 @@ public class CoinsApiHandler {
                     .body(coinsGeckoService
                               .getTickerById(tickerbyIdDto), 
                          Tickers.class);
+     }
+
+     public Mono<ServerResponse> getHistoryOfCoin(ServerRequest sRequest) {
+
+          log.info("In getHistoryOfCoin");
+
+          HistoryCoinDTO historyCoinDTO = HistoryCoinDTO
+                              .builder()
+                              .idCoin(sRequest.pathVariable("idCoin"))
+                              .date(sRequest.queryParam("date").get())
+                              .location(sRequest.queryParam("location"))
+                              .build();
+
+          return ServerResponse
+                    .ok()
+                    .body(coinsGeckoService
+                              .getCoinHistoryByIdAndDate(historyCoinDTO), 
+                         CoinHistoryById.class);
      }
 
 }
