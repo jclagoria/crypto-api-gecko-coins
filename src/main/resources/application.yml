@@ -11,6 +11,7 @@ coins:
   history: '/{idCoin}/history'
   marketChart: '/{idCoin}/marketChart'
   rangeById: '/{idCoin}/marketChartRange'
+  ohlcById: '/{idCoin}/ohlc'
 
 ## Url Coin Gecko RestService
 api:
@@ -23,3 +24,4 @@ api:
   historyCoin: '/coins/%s/history'
   marketChartCoin: '/coins/%s/market_chart'
   marketChartRange: '/coins/%s/market_chart/range'
+  ohlcById: '/coins/%s/ohlc'

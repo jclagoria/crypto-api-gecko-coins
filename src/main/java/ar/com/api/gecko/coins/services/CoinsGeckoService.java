@@ -9,6 +9,7 @@ import ar.com.api.gecko.coins.dto.HistoryCoinDTO;
 import ar.com.api.gecko.coins.dto.MarketChargeRangeDTO;
 import ar.com.api.gecko.coins.dto.MarketChatBiIdDTO;
 import ar.com.api.gecko.coins.dto.MarketDTO;
+import ar.com.api.gecko.coins.dto.OHLCByIdDTO;
 import ar.com.api.gecko.coins.dto.TickerByIdDTO;
 import ar.com.api.gecko.coins.model.CoinBase;
 import ar.com.api.gecko.coins.model.CoinHistoryById;
@@ -17,6 +18,7 @@ import ar.com.api.gecko.coins.model.CoinTickerById;
 import ar.com.api.gecko.coins.model.Market;
 import ar.com.api.gecko.coins.model.MarketChargeRangeById;
 import ar.com.api.gecko.coins.model.MarketChartById;
+import ar.com.api.gecko.coins.model.OHLCById;
 import reactor.core.publisher.Flux;
 
 import lombok.extern.slf4j.Slf4j;
@@ -45,6 +47,9 @@ public class CoinsGeckoService {
 
  @Value("${api.marketChartRange}")
  private String URL_MARKET_CHART_RANGE;
+
+ @Value("${api.ohlcById}")
+ private String URL_OHLC_BY_ID;
 
  private WebClient webClient;
 
@@ -150,6 +155,23 @@ public class CoinsGeckoService {
                 .uri(urlMarketChartRange + marketRangeDTO.getUrlFilterString())
                 .retrieve()
                 .bodyToFlux(MarketChargeRangeById.class)
+                .doOnError(throwable -> log.error("The service is unavailable!", throwable))
+                .onErrorComplete();
+ }
+
+ public Flux<String> getOHLCById(OHLCByIdDTO ohlcByIdDTO) {
+        
+        log.info("Service -> getOHLCById");
+
+        String urlOHCL = String.format(
+                URL_OHLC_BY_ID, 
+                ohlcByIdDTO.getIdCoin());
+
+        return webClient
+                .get()
+                .uri(urlOHCL + ohlcByIdDTO.getUrlFilterString())
+                .retrieve()
+                .bodyToFlux(String.class)
                 .doOnError(throwable -> log.error("The service is unavailable!", throwable))
                 .onErrorComplete();
  }
