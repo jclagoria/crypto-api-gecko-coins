@@ -7,7 +7,7 @@ import lombok.Getter;
 
 @Getter
 @Builder
-public class MarketChatBiId implements IFilterDTO {
+public class MarketChatBiIdDTO implements IFilterDTO {
 
  private String idCoin;
  private String vsCurrency;
