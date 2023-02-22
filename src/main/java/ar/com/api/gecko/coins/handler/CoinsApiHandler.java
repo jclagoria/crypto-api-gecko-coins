@@ -6,6 +6,7 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 
 import ar.com.api.gecko.coins.dto.CoinFilterDTO;
 import ar.com.api.gecko.coins.dto.HistoryCoinDTO;
+import ar.com.api.gecko.coins.dto.MarketChargeRangeDTO;
 import ar.com.api.gecko.coins.dto.MarketChatBiIdDTO;
 import ar.com.api.gecko.coins.dto.MarketDTO;
 import ar.com.api.gecko.coins.dto.TickerByIdDTO;
@@ -13,6 +14,7 @@ import ar.com.api.gecko.coins.model.CoinBase;
 import ar.com.api.gecko.coins.model.CoinHistoryById;
 import ar.com.api.gecko.coins.model.CoinInfo;
 import ar.com.api.gecko.coins.model.Market;
+import ar.com.api.gecko.coins.model.MarketChargeRangeById;
 import ar.com.api.gecko.coins.model.MarketChartById;
 import ar.com.api.gecko.coins.model.Ping;
 import ar.com.api.gecko.coins.model.Tickers;
@@ -156,6 +158,25 @@ public class CoinsApiHandler {
                     .body(
                          coinsGeckoService.getMarketChartById(marketChartDTO), 
                          MarketChartById.class);
+     }
+
+     public Mono<ServerResponse> getMarketChartRangeById(ServerRequest sRequest) {
+
+          log.info("In getMarketChartRangeById");
+
+          MarketChargeRangeDTO marketChargeRangeDTO = MarketChargeRangeDTO
+                                   .builder()
+                                   .idCurrency(sRequest.pathVariable("idCoin"))
+                                   .vsCurrency(sRequest.queryParam("vsCurrency").get())
+                                   .fromDate(sRequest.queryParam("fromDate").get())
+                                   .toDate(sRequest.queryParam("toDate").get())
+                                   .build();
+
+          return ServerResponse
+                    .ok()
+                    .body(
+                         coinsGeckoService.getMarketChargeRangeById(marketChargeRangeDTO), MarketChargeRangeById.class);
+
      }
 
 }
