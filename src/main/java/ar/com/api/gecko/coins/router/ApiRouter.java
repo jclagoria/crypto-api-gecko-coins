@@ -38,6 +38,9 @@ public class ApiRouter {
  @Value("${coins.rangeById}")
  private String URL_MARKET_CHART_RANGE_BY_ID;
 
+ @Value("${coins.ohlcById}")
+ private String URL_OHLC_BY_ID; 
+
  @Bean
  public RouterFunction<ServerResponse> route(CoinsApiHandler handler) {
 
@@ -65,6 +68,9 @@ public class ApiRouter {
             .GET(URL_SERVICE_API + URL_MARKET_CHART_RANGE_BY_ID, 
                          RequestPredicates.accept(MediaType.APPLICATION_JSON),
                          handler::getMarketChartRangeById)
+            .GET(URL_SERVICE_API + URL_OHLC_BY_ID, 
+                         RequestPredicates.accept(MediaType.APPLICATION_JSON),
+                         handler::getOHLCById)
             .build();
  }
 

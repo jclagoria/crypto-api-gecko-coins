@@ -9,6 +9,7 @@ import ar.com.api.gecko.coins.dto.HistoryCoinDTO;
 import ar.com.api.gecko.coins.dto.MarketChargeRangeDTO;
 import ar.com.api.gecko.coins.dto.MarketChatBiIdDTO;
 import ar.com.api.gecko.coins.dto.MarketDTO;
+import ar.com.api.gecko.coins.dto.OHLCByIdDTO;
 import ar.com.api.gecko.coins.dto.TickerByIdDTO;
 import ar.com.api.gecko.coins.model.CoinBase;
 import ar.com.api.gecko.coins.model.CoinHistoryById;
@@ -16,6 +17,7 @@ import ar.com.api.gecko.coins.model.CoinInfo;
 import ar.com.api.gecko.coins.model.Market;
 import ar.com.api.gecko.coins.model.MarketChargeRangeById;
 import ar.com.api.gecko.coins.model.MarketChartById;
+import ar.com.api.gecko.coins.model.OHLCById;
 import ar.com.api.gecko.coins.model.Ping;
 import ar.com.api.gecko.coins.model.Tickers;
 import ar.com.api.gecko.coins.services.CoinGeckoServiceStatus;
@@ -176,7 +178,25 @@ public class CoinsApiHandler {
                     .ok()
                     .body(
                          coinsGeckoService.getMarketChargeRangeById(marketChargeRangeDTO), MarketChargeRangeById.class);
+     }
 
+     public Mono<ServerResponse> getOHLCById(ServerRequest sRequest) {
+
+          log.info("In getOHLCById");
+
+          OHLCByIdDTO ohlcByIdDTO = OHLCByIdDTO
+                                        .builder()
+                                        .idCoin(sRequest.pathVariable("idCoin"))
+                                        .vsCurrency(sRequest.queryParam("vsCurrency").get())
+                                        .days(sRequest.queryParam("days").get())
+                                        .build();
+
+          return ServerResponse
+                         .ok()
+                         .body(
+                              coinsGeckoService.getOHLCById(ohlcByIdDTO), 
+                              String.class
+                         );
      }
 
 }
