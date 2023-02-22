@@ -9,6 +9,7 @@ coins:
   coinMarket: '/markets'
   coinTickers: '/{idCoin}/tickers'
   coinHistory: '/{idCoin}/history'
+  coinMarketChart: '/{idCoin}/marketChart'
 
 ## Url Coin Gecko RestService
 api:
@@ -19,3 +20,4 @@ api:
   markets: '/coins/markets'
   tickersById: '/coins/%s/tickers'
   historyCoin: '/coins/%s/history'
+  marketChartCoin: '/coins/%s/market_chart'

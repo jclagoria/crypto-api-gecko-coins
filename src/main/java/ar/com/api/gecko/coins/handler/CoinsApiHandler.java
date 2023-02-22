@@ -6,12 +6,14 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 
 import ar.com.api.gecko.coins.dto.CoinFilterDTO;
 import ar.com.api.gecko.coins.dto.HistoryCoinDTO;
+import ar.com.api.gecko.coins.dto.MarketChatBiIdDTO;
 import ar.com.api.gecko.coins.dto.MarketDTO;
 import ar.com.api.gecko.coins.dto.TickerByIdDTO;
 import ar.com.api.gecko.coins.model.CoinBase;
 import ar.com.api.gecko.coins.model.CoinHistoryById;
 import ar.com.api.gecko.coins.model.CoinInfo;
 import ar.com.api.gecko.coins.model.Market;
+import ar.com.api.gecko.coins.model.MarketChartById;
 import ar.com.api.gecko.coins.model.Ping;
 import ar.com.api.gecko.coins.model.Tickers;
 import ar.com.api.gecko.coins.services.CoinGeckoServiceStatus;
@@ -135,6 +137,25 @@ public class CoinsApiHandler {
                     .body(coinsGeckoService
                               .getCoinHistoryByIdAndDate(historyCoinDTO), 
                          CoinHistoryById.class);
+     }
+
+     public Mono<ServerResponse> getMarketChartById(ServerRequest sRequest) {
+
+          log.info("In getMarketChartById");
+
+          MarketChatBiIdDTO marketChartDTO = MarketChatBiIdDTO
+                              .builder()
+                              .idCoin(sRequest.pathVariable("idCoin"))
+                              .vsCurrency(sRequest.queryParam("vsCurrency").get())
+                              .days(Long.valueOf(sRequest.queryParam("days").get()))
+                              .interval(sRequest.queryParam("interval"))
+                              .build();
+          
+          return ServerResponse
+                    .ok()
+                    .body(
+                         coinsGeckoService.getMarketChartById(marketChartDTO), 
+                         MarketChartById.class);
      }
 
 }

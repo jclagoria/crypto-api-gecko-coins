@@ -6,6 +6,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import ar.com.api.gecko.coins.dto.CoinFilterDTO;
 import ar.com.api.gecko.coins.dto.HistoryCoinDTO;
+import ar.com.api.gecko.coins.dto.MarketChatBiIdDTO;
 import ar.com.api.gecko.coins.dto.MarketDTO;
 import ar.com.api.gecko.coins.dto.TickerByIdDTO;
 import ar.com.api.gecko.coins.model.CoinBase;
@@ -13,6 +14,7 @@ import ar.com.api.gecko.coins.model.CoinHistoryById;
 import ar.com.api.gecko.coins.model.CoinInfo;
 import ar.com.api.gecko.coins.model.CoinTickerById;
 import ar.com.api.gecko.coins.model.Market;
+import ar.com.api.gecko.coins.model.MarketChartById;
 import reactor.core.publisher.Flux;
 
 import lombok.extern.slf4j.Slf4j;
@@ -35,6 +37,9 @@ public class CoinsGeckoService {
 
  @Value("${api.historyCoin}")
  private String URL_HISTORY_COIN;
+
+ @Value("${api.marketChartCoin}")
+ private String URL_MARKET_CHART;
 
  private WebClient webClient;
 
@@ -98,6 +103,19 @@ public class CoinsGeckoService {
                 .uri(urlHistoryCoin + coinFilter.getUrlFilterString())
                 .retrieve()
                 .bodyToFlux(CoinHistoryById.class)
+                .doOnError(throwable -> log.error("The service is unavailable!", throwable))
+                .onErrorComplete();
+ }
+
+ public Flux<MarketChartById> getMarketChartById(MarketChatBiIdDTO marketChartByIdDTO) {
+
+        String urlMarcketChart = String.format(URL_MARKETS_LIST, marketChartByIdDTO.getIdCoin());
+
+        return webClient
+                .get()
+                .uri(urlMarcketChart + marketChartByIdDTO.getUrlFilterString())
+                .retrieve()
+                .bodyToFlux(MarketChartById.class)
                 .doOnError(throwable -> log.error("The service is unavailable!", throwable))
                 .onErrorComplete();
  }
