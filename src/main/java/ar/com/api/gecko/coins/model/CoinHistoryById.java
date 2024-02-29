@@ -1,32 +1,31 @@
 package ar.com.api.gecko.coins.model;
 
-import java.util.Map;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import lombok.Data;
+
+import java.util.Map;
 
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class CoinHistoryById extends CoinBase {
- 
- @JsonProperty("localization")
- private Map<String, String> localization;
 
- @JsonProperty("image") 
- private Image image;
+    @JsonProperty("localization")
+    private Map<String, String> localization;
 
- @JsonProperty("market_data") 
- private MarketData marketData;
+    @JsonProperty("image")
+    private Image image;
 
- @JsonProperty("ommunity_data") 
- private CommunityData communityData;
+    @JsonProperty("market_data")
+    private MarketData marketData;
 
- @JsonProperty("developer_data") 
- private DeveloperData developerData;
+    @JsonProperty("ommunity_data")
+    private CommunityData communityData;
 
- @JsonProperty("public_interest_stats") 
- private PublicInterestStats publicInterestStats;
+    @JsonProperty("developer_data")
+    private DeveloperData developerData;
+
+    @JsonProperty("public_interest_stats")
+    private PublicInterestStats publicInterestStats;
 
 }

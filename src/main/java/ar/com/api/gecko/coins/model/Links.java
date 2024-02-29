@@ -1,54 +1,53 @@
 package ar.com.api.gecko.coins.model;
 
-import java.io.Serializable;
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import lombok.Data;
 import lombok.ToString;
+
+import java.io.Serializable;
+import java.util.List;
 
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Links implements Serializable {
- 
- @ToString.Exclude
- @JsonProperty("homepage")
- private List<String> homepage;
 
- @ToString.Exclude
- @JsonProperty("blockchain_site")
- private List<String> blockchainSite;
+    @ToString.Exclude
+    @JsonProperty("homepage")
+    private List<String> homepage;
 
- @ToString.Exclude
- @JsonProperty("official_forum_url")
- private List<String> officialForumUrl;
+    @ToString.Exclude
+    @JsonProperty("blockchain_site")
+    private List<String> blockchainSite;
 
- @ToString.Exclude
- @JsonProperty("chat_url")
- private List<String> chatUrl;
+    @ToString.Exclude
+    @JsonProperty("official_forum_url")
+    private List<String> officialForumUrl;
 
- @ToString.Exclude
- @JsonProperty("announcement_url")
- private List<String> announcementUrl;
+    @ToString.Exclude
+    @JsonProperty("chat_url")
+    private List<String> chatUrl;
 
- @JsonProperty("twitter_screen_name")
- private String twitterScreenName;
+    @ToString.Exclude
+    @JsonProperty("announcement_url")
+    private List<String> announcementUrl;
 
- @JsonProperty("current_price")
- private String facebookUsername;
+    @JsonProperty("twitter_screen_name")
+    private String twitterScreenName;
 
- @JsonProperty("facebook_username")
- private String bitcointalkThreadIdentifier;
+    @JsonProperty("current_price")
+    private String facebookUsername;
 
- @JsonProperty("telegram_channel_identifier")
- private String telegramChannelIdentifier;
+    @JsonProperty("facebook_username")
+    private String bitcointalkThreadIdentifier;
 
- @JsonProperty("subreddit_url")
- private String subredditUrl;
+    @JsonProperty("telegram_channel_identifier")
+    private String telegramChannelIdentifier;
 
- @JsonProperty("repos_url")
- private ReposUrl reposUrl;
+    @JsonProperty("subreddit_url")
+    private String subredditUrl;
+
+    @JsonProperty("repos_url")
+    private ReposUrl reposUrl;
 
 }

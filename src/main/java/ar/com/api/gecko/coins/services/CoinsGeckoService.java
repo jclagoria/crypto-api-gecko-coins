@@ -1,102 +1,87 @@
 package ar.com.api.gecko.coins.services;
 
+import ar.com.api.gecko.coins.dto.*;
+import ar.com.api.gecko.coins.model.*;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
-
-import ar.com.api.gecko.coins.dto.CoinFilterDTO;
-import ar.com.api.gecko.coins.dto.HistoryCoinDTO;
-import ar.com.api.gecko.coins.dto.MarketChargeRangeDTO;
-import ar.com.api.gecko.coins.dto.MarketChatBiIdDTO;
-import ar.com.api.gecko.coins.dto.MarketDTO;
-import ar.com.api.gecko.coins.dto.OHLCByIdDTO;
-import ar.com.api.gecko.coins.dto.TickerByIdDTO;
-import ar.com.api.gecko.coins.model.CoinBase;
-import ar.com.api.gecko.coins.model.CoinHistoryById;
-import ar.com.api.gecko.coins.model.CoinInfo;
-import ar.com.api.gecko.coins.model.CoinTickerById;
-import ar.com.api.gecko.coins.model.Market;
-import ar.com.api.gecko.coins.model.MarketChargeRangeById;
-import ar.com.api.gecko.coins.model.MarketChartById;
-import ar.com.api.gecko.coins.model.OHLCById;
 import reactor.core.publisher.Flux;
-
-import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
 public class CoinsGeckoService {
 
- @Value("${api.coin}")     
- private String URL_COIN;
-      
- @Value("${api.coinList}")
- private String URL_COINS_LIST; 
+    @Value("${api.coin}")
+    private String URL_COIN;
 
- @Value("${api.markets}")
- private String URL_MARKETS_LIST;
+    @Value("${api.coinList}")
+    private String URL_COINS_LIST;
 
- @Value("${api.tickersById}")
- private String URL_TICKERS_BY_ID;
+    @Value("${api.markets}")
+    private String URL_MARKETS_LIST;
 
- @Value("${api.historyCoin}")
- private String URL_HISTORY_COIN;
+    @Value("${api.tickersById}")
+    private String URL_TICKERS_BY_ID;
 
- @Value("${api.marketChartCoin}")
- private String URL_MARKET_CHART;
+    @Value("${api.historyCoin}")
+    private String URL_HISTORY_COIN;
 
- @Value("${api.marketChartRange}")
- private String URL_MARKET_CHART_RANGE;
+    @Value("${api.marketChartCoin}")
+    private String URL_MARKET_CHART;
 
- @Value("${api.ohlcById}")
- private String URL_OHLC_BY_ID;
+    @Value("${api.marketChartRange}")
+    private String URL_MARKET_CHART_RANGE;
 
- private WebClient webClient;
+    @Value("${api.ohlcById}")
+    private String URL_OHLC_BY_ID;
 
- public CoinsGeckoService(WebClient wClient) {
-  this.webClient = wClient;
- }
+    private WebClient webClient;
 
- public Flux<CoinBase> getListOfCoins(){
+    public CoinsGeckoService(WebClient wClient) {
+        this.webClient = wClient;
+    }
 
-  log.info("Service -> getListOfCoins");
+    public Flux<CoinBase> getListOfCoins() {
 
-  return webClient
-            .get()
-            .uri(URL_COINS_LIST)
-            .retrieve()            
-            .bodyToFlux(CoinBase.class)            
-            .doOnError(throwable -> log.error("The service is unavailable!", throwable))
-            .onErrorComplete();
- }
+        log.info("Service -> getListOfCoins");
 
- public Flux<Market> getListOfMarkets(MarketDTO marketFilter) {  
+        return webClient
+                .get()
+                .uri(URL_COINS_LIST)
+                .retrieve()
+                .bodyToFlux(CoinBase.class)
+                .doOnError(throwable -> log.error("The service is unavailable!", throwable))
+                .onErrorComplete();
+    }
 
-  log.info("Service -> getListOfMarkets");
+    public Flux<Market> getListOfMarkets(MarketDTO marketFilter) {
 
-  return webClient
-          .get()
-          .uri(URL_MARKETS_LIST + marketFilter.getUrlFilterString())
-          .retrieve()
-          .bodyToFlux(Market.class)
-          .doOnError(throwable -> log.error("The service is unavailable!", throwable))
-          .onErrorComplete();
- }
+        log.info("Service -> getListOfMarkets");
 
- public Flux<CoinInfo> getCoinById(CoinFilterDTO idFilter) {
-      
-      log.info("Service -> getCoinById");
+        return webClient
+                .get()
+                .uri(URL_MARKETS_LIST + marketFilter.getUrlFilterString())
+                .retrieve()
+                .bodyToFlux(Market.class)
+                .doOnError(throwable -> log.error("The service is unavailable!", throwable))
+                .onErrorComplete();
+    }
 
-      return webClient
-                  .get()
-                  .uri(URL_COIN + idFilter.getUrlFilterString())
-                  .retrieve()
-                  .bodyToFlux(CoinInfo.class)
-                  .doOnError(throwable -> log.error("The service is unavailable!", throwable))
-                  .onErrorComplete();
- }
+    public Flux<CoinInfo> getCoinById(CoinFilterDTO idFilter) {
 
- public Flux<CoinTickerById> getTickerById(TickerByIdDTO tickerByIdDTO) {
+        log.info("Service -> getCoinById");
+
+        return webClient
+                .get()
+                .uri(URL_COIN + idFilter.getUrlFilterString())
+                .retrieve()
+                .bodyToFlux(CoinInfo.class)
+                .doOnError(throwable -> log.error("The service is unavailable!", throwable))
+                .onErrorComplete();
+    }
+
+    public Flux<CoinTickerById> getTickerById(TickerByIdDTO tickerByIdDTO) {
 
         log.info("Service -> getTickerById");
 
@@ -110,9 +95,9 @@ public class CoinsGeckoService {
                 .bodyToFlux(CoinTickerById.class)
                 .doOnError(throwable -> log.error("The service is unavailable!", throwable))
                 .onErrorComplete();
- }
+    }
 
- public Flux<CoinHistoryById> getCoinHistoryByIdAndDate(HistoryCoinDTO coinFilter) {
+    public Flux<CoinHistoryById> getCoinHistoryByIdAndDate(HistoryCoinDTO coinFilter) {
 
         log.info("Service -> getCoinHistoryByIdAndDate");
 
@@ -125,9 +110,9 @@ public class CoinsGeckoService {
                 .bodyToFlux(CoinHistoryById.class)
                 .doOnError(throwable -> log.error("The service is unavailable!", throwable))
                 .onErrorComplete();
- }
+    }
 
- public Flux<MarketChartById> getMarketChartById(MarketChatBiIdDTO marketChartByIdDTO) {
+    public Flux<MarketChartById> getMarketChartById(MarketChatBiIdDTO marketChartByIdDTO) {
 
         log.info("Service -> getMarketChartById");
 
@@ -140,15 +125,15 @@ public class CoinsGeckoService {
                 .bodyToFlux(MarketChartById.class)
                 .doOnError(throwable -> log.error("The service is unavailable!", throwable))
                 .onErrorComplete();
- }
+    }
 
- public Flux<MarketChargeRangeById> getMarketChargeRangeById(MarketChargeRangeDTO marketRangeDTO) {
+    public Flux<MarketChargeRangeById> getMarketChargeRangeById(MarketChargeRangeDTO marketRangeDTO) {
 
         log.info("Service -> getMarketChargeRangeById");
 
         String urlMarketChartRange = String.format(
-                URL_MARKET_CHART_RANGE, 
-                marketRangeDTO.getIdCurrency());        
+                URL_MARKET_CHART_RANGE,
+                marketRangeDTO.getIdCurrency());
 
         return webClient
                 .get()
@@ -157,14 +142,14 @@ public class CoinsGeckoService {
                 .bodyToFlux(MarketChargeRangeById.class)
                 .doOnError(throwable -> log.error("The service is unavailable!", throwable))
                 .onErrorComplete();
- }
+    }
 
- public Flux<String> getOHLCById(OHLCByIdDTO ohlcByIdDTO) {
-        
+    public Flux<String> getOHLCById(OHLCByIdDTO ohlcByIdDTO) {
+
         log.info("Service -> getOHLCById");
 
         String urlOHCL = String.format(
-                URL_OHLC_BY_ID, 
+                URL_OHLC_BY_ID,
                 ohlcByIdDTO.getIdCoin());
 
         return webClient
@@ -174,6 +159,6 @@ public class CoinsGeckoService {
                 .bodyToFlux(String.class)
                 .doOnError(throwable -> log.error("The service is unavailable!", throwable))
                 .onErrorComplete();
- }
+    }
 
 }
