@@ -2,7 +2,6 @@ package ar.com.api.gecko.coins.handler;
 
 import ar.com.api.gecko.coins.dto.*;
 import ar.com.api.gecko.coins.model.*;
-import ar.com.api.gecko.coins.services.CoinGeckoServiceStatus;
 import ar.com.api.gecko.coins.services.CoinsGeckoService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,20 +15,7 @@ import reactor.core.publisher.Mono;
 @Slf4j
 public class CoinsApiHandler {
 
-    private CoinGeckoServiceStatus serviceStatus;
-
     private CoinsGeckoService coinsGeckoService;
-
-    public Mono<ServerResponse> getStatusServiceCoinGecko(ServerRequest serverRequest) {
-
-        log.info("In getStatusServiceCoinGecko");
-
-        return ServerResponse
-                .ok()
-                .body(
-                        serviceStatus.getStatusCoinGeckoService(),
-                        Ping.class);
-    }
 
     public Mono<ServerResponse> getListOfCoins(ServerRequest sRequest) {
 
@@ -87,7 +73,6 @@ public class CoinsApiHandler {
                         coinsGeckoService.getCoinById(coinFilter),
                         CoinInfo.class);
     }
-
 
     public Mono<ServerResponse> getTickersById(ServerRequest sRequest) {
 

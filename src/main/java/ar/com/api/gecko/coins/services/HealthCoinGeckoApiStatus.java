@@ -9,14 +9,14 @@ import reactor.core.publisher.Mono;
 
 @Service
 @Slf4j
-public class HealthCoinGegoApiStatus {
+public class HealthCoinGeckoApiStatus {
 
     @Value("${api.ping}")
     private String URL_PING_SERVICE;
 
     private WebClient webClient;
 
-    public HealthCoinGegoApiStatus(WebClient wClient) {
+    public HealthCoinGeckoApiStatus(WebClient wClient) {
         this.webClient = wClient;
     }
 
