@@ -16,9 +16,6 @@ public class ApiRouter {
     @Value("${coins.baseURL}")
     private String URL_SERVICE_API;
 
-    @Value("${coins.healthAPI}")
-    private String URL_HEALTH_GECKO_API;
-
     @Value("${coins.list}")
     private String URL_COINS_LIST_API;
 
@@ -41,12 +38,10 @@ public class ApiRouter {
     private String URL_OHLC_BY_ID;
 
     @Bean
-    public RouterFunction<ServerResponse> route(CoinsApiHandler handler) {
+    public RouterFunction<ServerResponse> routeCoin(CoinsApiHandler handler) {
 
         return RouterFunctions
                 .route()
-                .GET(URL_SERVICE_API + URL_HEALTH_GECKO_API,
-                        handler::getStatusServiceCoinGecko)
                 .GET(URL_SERVICE_API + URL_COINS_LIST_API,
                         handler::getListOfCoins)
                 .GET(URL_SERVICE_API + URL_COINS_MARKETS_API,
