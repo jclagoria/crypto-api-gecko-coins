@@ -1,35 +1,29 @@
 package ar.com.api.gecko.coins.services;
 
+import ar.com.api.gecko.coins.configuration.ExternalServerConfig;
+import ar.com.api.gecko.coins.configuration.HttpServiceCall;
 import ar.com.api.gecko.coins.model.Ping;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 @Service
 @Slf4j
 public class HealthCoinGeckoApiStatus {
 
-    @Value("${api.ping}")
-    private String URL_PING_SERVICE;
+    private final HttpServiceCall httpServiceCall;
 
-    private WebClient webClient;
+    private final ExternalServerConfig externalServerConfig;
 
-    public HealthCoinGeckoApiStatus(WebClient wClient) {
-        this.webClient = wClient;
+    public HealthCoinGeckoApiStatus(HttpServiceCall serviceCall, ExternalServerConfig serviceConfig) {
+        this.httpServiceCall = serviceCall;
+        this.externalServerConfig = serviceConfig;
     }
 
     public Mono<Ping> getStatusCoinGeckoService() {
+        log.info("Calling method: {}", externalServerConfig.getPing());
 
-        log.info("Calling method: ", URL_PING_SERVICE);
-
-        return webClient
-                .get()
-                .uri(URL_PING_SERVICE)
-                .retrieve()
-                .bodyToMono(Ping.class)
-                .doOnError(throwable -> log.error("The service is unavailable!", throwable));
+        return httpServiceCall.getMonoObject(externalServerConfig.getPing(), Ping.class);
     }
 
 }
