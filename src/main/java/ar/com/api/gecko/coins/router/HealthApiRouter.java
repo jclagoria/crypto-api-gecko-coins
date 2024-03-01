@@ -1,6 +1,6 @@
 package ar.com.api.gecko.coins.router;
 
-import ar.com.api.gecko.coins.configuration.ExternalServerConfig;
+import ar.com.api.gecko.coins.configuration.ApiServiceConfig;
 import ar.com.api.gecko.coins.handler.HealthCoinGeckoApiHandler;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
@@ -13,10 +13,10 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 @Slf4j
 public class HealthApiRouter {
 
-    private final ExternalServerConfig externalServerConfig;
+    private final ApiServiceConfig apiServiceConfig;
 
-    public HealthApiRouter(ExternalServerConfig serverConfig) {
-        this.externalServerConfig = serverConfig;
+    public HealthApiRouter(ApiServiceConfig serverConfig) {
+        this.apiServiceConfig = serverConfig;
     }
 
     @Bean
@@ -26,8 +26,8 @@ public class HealthApiRouter {
 
         return RouterFunctions
                 .route()
-                .GET(externalServerConfig.getBaseURL() +
-                                externalServerConfig.getHealthAPI(),
+                .GET(apiServiceConfig.getBaseURL() +
+                                apiServiceConfig.getHealthAPI(),
                         handler::getStatusServiceCoinGecko)
                 .build();
 

@@ -6,19 +6,19 @@ coins:
   baseURL: 'api'
   healthAPI: '/health-api'
   coinById: "/coins/{idCoin}"
-  list: '/coins/list'
+  coinList: '/coins/list'
   markets: '/coins/markets'
-  tickers: '/coins/{idCoin}/tickers'
-  history: '/coins/{idCoin}/history'
-  marketChart: '/coins/{idCoin}/marketChart'
-  rangeById: '/coins/{idCoin}/marketChartRange'
+  tickersById: '/coins/{idCoin}/tickers'
+  historyCoin: '/coins/{idCoin}/history'
+  marketChartCoin: '/coins/{idCoin}/marketChart'
+  marketChartRange: '/coins/{idCoin}/marketChartRange'
   ohlcById: '/coins/{idCoin}/ohlc'
 
 ## Url Coin Gecko RestService
 api:
   urlCoinGecko: 'https://api.coingecko.com/api/v3'
   ping: '/ping'
-  coin: '/coins/%s'
+  coinById: '/coins/%s'
   coinList: '/coins/list'
   markets: '/coins/markets'
   tickersById: '/coins/%s/tickers'

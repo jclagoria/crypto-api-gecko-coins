@@ -1,5 +1,6 @@
 package ar.com.api.gecko.coins.router;
 
+import ar.com.api.gecko.coins.configuration.ApiServiceConfig;
 import ar.com.api.gecko.coins.configuration.ExternalServerConfig;
 import ar.com.api.gecko.coins.handler.CoinsApiHandler;
 import org.springframework.context.annotation.Bean;
@@ -13,10 +14,10 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 @Configuration
 public class CoinApiRouter {
 
-    private final ExternalServerConfig externalServerConfig;
+    private final ApiServiceConfig apiServiceConfig;
 
-    public CoinApiRouter(ExternalServerConfig serverConfig) {
-        this.externalServerConfig = serverConfig;
+    public CoinApiRouter(ApiServiceConfig serverConfig) {
+        this.apiServiceConfig = serverConfig;
     }
 
     @Bean
@@ -24,26 +25,26 @@ public class CoinApiRouter {
 
         return RouterFunctions
                 .route()
-                .GET(externalServerConfig.getBaseURL() + externalServerConfig.getCoinById(),
+                .GET(apiServiceConfig.getBaseURL() + apiServiceConfig.getCoinById(),
                         handler::getCoinById)
-                .GET(externalServerConfig.getBaseURL() + externalServerConfig.getList(),
+                .GET(apiServiceConfig.getBaseURL() + apiServiceConfig.getCoinList(),
                         handler::getListOfCoins)
-                .GET(externalServerConfig.getBaseURL() + externalServerConfig.getMarkets(),
+                .GET(apiServiceConfig.getBaseURL() + apiServiceConfig.getMarkets(),
                         RequestPredicates.accept(MediaType.APPLICATION_JSON),
                         handler::getMarkets)
-                .GET(externalServerConfig.getBaseURL() + externalServerConfig.getTickers(),
+                .GET(apiServiceConfig.getBaseURL() + apiServiceConfig.getTickersById(),
                         RequestPredicates.accept(MediaType.APPLICATION_JSON),
                         handler::getTickersById)
-                .GET(externalServerConfig.getBaseURL() + externalServerConfig.getHistory(),
+                .GET(apiServiceConfig.getBaseURL() + apiServiceConfig.getHistoryCoin(),
                         RequestPredicates.accept(MediaType.APPLICATION_JSON),
                         handler::getHistoryOfCoin)
-                .GET(externalServerConfig.getBaseURL() + externalServerConfig.getMarketChart(),
+                .GET(apiServiceConfig.getBaseURL() + apiServiceConfig.getMarketChartCoin(),
                         RequestPredicates.accept(MediaType.APPLICATION_JSON),
                         handler::getMarketChartById)
-                .GET(externalServerConfig.getBaseURL() + externalServerConfig.getRangeById(),
+                .GET(apiServiceConfig.getBaseURL() + apiServiceConfig.getMarketChartRange(),
                         RequestPredicates.accept(MediaType.APPLICATION_JSON),
                         handler::getMarketChartRangeById)
-                .GET(externalServerConfig.getBaseURL() + externalServerConfig.getOhlcById(),
+                .GET(apiServiceConfig.getBaseURL() + apiServiceConfig.getOhlcById(),
                         RequestPredicates.accept(MediaType.APPLICATION_JSON),
                         handler::getOHLCById)
                 .build();

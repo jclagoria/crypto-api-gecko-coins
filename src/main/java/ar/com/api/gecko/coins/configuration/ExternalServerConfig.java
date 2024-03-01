@@ -6,20 +6,20 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 @Component
-@ConfigurationProperties(prefix = "coins")
+@ConfigurationProperties(prefix = "api")
 @Getter
 @Setter
 public class ExternalServerConfig {
 
-    private String baseURL;
-    private String healthAPI;
+    private String urlCoinGecko;
+    private String ping;
     private String coinById;
-    private String list;
+    private String coinList;
     private String markets;
-    private String tickers;
-    private String history;
-    private String marketChart;
-    private String rangeById;
+    private String tickersById;
+    private String historyCoin;
+    private String marketChartCoin;
+    private String marketChartRange;
     private String ohlcById;
 
 }

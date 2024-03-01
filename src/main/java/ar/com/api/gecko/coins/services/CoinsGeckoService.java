@@ -1,5 +1,6 @@
 package ar.com.api.gecko.coins.services;
 
+import ar.com.api.gecko.coins.configuration.ExternalServerConfig;
 import ar.com.api.gecko.coins.dto.*;
 import ar.com.api.gecko.coins.model.*;
 import lombok.extern.slf4j.Slf4j;
@@ -7,48 +8,42 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 @Service
 @Slf4j
 public class CoinsGeckoService {
 
-    @Value("${api.coin}")
-    private String URL_COIN;
-
-    @Value("${api.coinList}")
-    private String URL_COINS_LIST;
-
-    @Value("${api.markets}")
-    private String URL_MARKETS_LIST;
-
-    @Value("${api.tickersById}")
-    private String URL_TICKERS_BY_ID;
-
-    @Value("${api.historyCoin}")
-    private String URL_HISTORY_COIN;
-
-    @Value("${api.marketChartCoin}")
-    private String URL_MARKET_CHART;
-
-    @Value("${api.marketChartRange}")
-    private String URL_MARKET_CHART_RANGE;
-
-    @Value("${api.ohlcById}")
-    private String URL_OHLC_BY_ID;
+    private final ExternalServerConfig externalServerConfig;
 
     private WebClient webClient;
 
-    public CoinsGeckoService(WebClient wClient) {
+    public CoinsGeckoService(WebClient wClient, ExternalServerConfig serverConfig) {
         this.webClient = wClient;
+        this.externalServerConfig = serverConfig;
     }
 
-    public Flux<CoinBase> getListOfCoins() {
+    public Mono<CoinInfo> getCoinById(CoinFilterDTO idFilter) {
 
-        log.info("Service -> getListOfCoins");
+        log.info("Fetch Service: {}", externalServerConfig.getCoinById());
 
         return webClient
                 .get()
-                .uri(URL_COINS_LIST)
+                .uri(externalServerConfig.getCoinById() + idFilter.getUrlFilterString())
+                .retrieve()
+                .bodyToMono(CoinInfo.class)
+                .doOnError(throwable -> log.error("The service is unavailable!", throwable))
+                .onErrorComplete();
+    }
+
+
+    public Flux<CoinBase> getListOfCoins() {
+
+        log.info("Fetch Service: {}", externalServerConfig.getCoinList());
+
+        return webClient
+                .get()
+                .uri(externalServerConfig.getCoinList())
                 .retrieve()
                 .bodyToFlux(CoinBase.class)
                 .doOnError(throwable -> log.error("The service is unavailable!", throwable))
@@ -57,35 +52,22 @@ public class CoinsGeckoService {
 
     public Flux<Market> getListOfMarkets(MarketDTO marketFilter) {
 
-        log.info("Service -> getListOfMarkets");
+        log.info("Fetch Service: {}", externalServerConfig.getMarkets());
 
         return webClient
                 .get()
-                .uri(URL_MARKETS_LIST + marketFilter.getUrlFilterString())
+                .uri(externalServerConfig.getMarkets() + marketFilter.getUrlFilterString())
                 .retrieve()
                 .bodyToFlux(Market.class)
                 .doOnError(throwable -> log.error("The service is unavailable!", throwable))
                 .onErrorComplete();
     }
 
-    public Flux<CoinInfo> getCoinById(CoinFilterDTO idFilter) {
-
-        log.info("Service -> getCoinById");
-
-        return webClient
-                .get()
-                .uri(URL_COIN + idFilter.getUrlFilterString())
-                .retrieve()
-                .bodyToFlux(CoinInfo.class)
-                .doOnError(throwable -> log.error("The service is unavailable!", throwable))
-                .onErrorComplete();
-    }
-
     public Flux<CoinTickerById> getTickerById(TickerByIdDTO tickerByIdDTO) {
 
-        log.info("Service -> getTickerById");
+        log.info("Fetch Service: {}", externalServerConfig.getTickersById());
 
-        String idCoin = String.format(URL_TICKERS_BY_ID, tickerByIdDTO.getIdCoin());
+        String idCoin = String.format(externalServerConfig.getTickersById(), tickerByIdDTO.getIdCoin());
 
         return webClient
                 .get()
@@ -99,9 +81,9 @@ public class CoinsGeckoService {
 
     public Flux<CoinHistoryById> getCoinHistoryByIdAndDate(HistoryCoinDTO coinFilter) {
 
-        log.info("Service -> getCoinHistoryByIdAndDate");
+        log.info("Fetch Service: {}", externalServerConfig.getHistoryCoin());
 
-        String urlHistoryCoin = String.format(URL_HISTORY_COIN, coinFilter.getIdCoin());
+        String urlHistoryCoin = String.format(externalServerConfig.getHistoryCoin(), coinFilter.getIdCoin());
 
         return webClient
                 .get()
@@ -114,13 +96,13 @@ public class CoinsGeckoService {
 
     public Flux<MarketChartById> getMarketChartById(MarketChatBiIdDTO marketChartByIdDTO) {
 
-        log.info("Service -> getMarketChartById");
+        log.info("Fetch Service: {}", externalServerConfig.getMarketChartCoin());
 
-        String urlMarcketChart = String.format(URL_MARKET_CHART, marketChartByIdDTO.getIdCoin());
+        String urlMarketChart = String.format(externalServerConfig.getMarketChartCoin(), marketChartByIdDTO.getIdCoin());
 
         return webClient
                 .get()
-                .uri(urlMarcketChart + marketChartByIdDTO.getUrlFilterString())
+                .uri(urlMarketChart + marketChartByIdDTO.getUrlFilterString())
                 .retrieve()
                 .bodyToFlux(MarketChartById.class)
                 .doOnError(throwable -> log.error("The service is unavailable!", throwable))
@@ -129,10 +111,10 @@ public class CoinsGeckoService {
 
     public Flux<MarketChargeRangeById> getMarketChargeRangeById(MarketChargeRangeDTO marketRangeDTO) {
 
-        log.info("Service -> getMarketChargeRangeById");
+        log.info("Fetch Service: {}", externalServerConfig.getMarketChartRange());
 
         String urlMarketChartRange = String.format(
-                URL_MARKET_CHART_RANGE,
+                externalServerConfig.getMarketChartRange(),
                 marketRangeDTO.getIdCurrency());
 
         return webClient
@@ -146,10 +128,10 @@ public class CoinsGeckoService {
 
     public Flux<String> getOHLCById(OHLCByIdDTO ohlcByIdDTO) {
 
-        log.info("Service -> getOHLCById");
+        log.info("Fetch Service: {}", externalServerConfig.getOhlcById());
 
         String urlOHCL = String.format(
-                URL_OHLC_BY_ID,
+                externalServerConfig.getOhlcById(),
                 ohlcByIdDTO.getIdCoin());
 
         return webClient
