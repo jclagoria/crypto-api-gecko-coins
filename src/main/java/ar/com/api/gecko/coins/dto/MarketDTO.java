@@ -1,50 +1,50 @@
 package ar.com.api.gecko.coins.dto;
 
-import java.util.Optional;
-
 import lombok.Builder;
 import lombok.Getter;
+
+import java.util.Optional;
 
 @Getter
 @Builder
 public class MarketDTO implements IFilterDTO {
- 
- private Optional<String> vsCurrecy;
- private Optional<String> order;
- private Optional<String> perPage;
- private Optional<String> numPage;
- private Optional<String> sparkline;
- private Optional<String> priceChangePercentage;
- private Optional<String> idsCurrency;
- private Optional<String> category;
 
- @Override
- public String getUrlFilterString() {
+    private Optional<String> vsCurrency;
+    private Optional<String> order;
+    private Optional<String> perPage;
+    private Optional<String> numPage;
+    private Optional<String> sparkline;
+    private Optional<String> priceChangePercentage;
+    private Optional<String> idsCurrency;
+    private Optional<String> category;
 
-  StringBuilder filterQuery = new StringBuilder();
-  filterQuery.append("?vs_currency=").append(this.getVsCurrecy().get())
-        .append("&order=").append(this.getOrder().orElse("market_cap_desc"))
-        .append("&per_page=").append(this.getPerPage().orElse("100"))
-        .append("&page=").append(this.getNumPage().orElse("1"))
-        .append("&sparkline=").append(this.getSparkline().orElse("false"));
+    @Override
+    public String getUrlFilterString() {
 
-  if(this.getIdsCurrency().isPresent())
-        filterQuery
-                .append("&ids=")
-                .append(this.getIdsCurrency().get());
-  
-  if(this.getCategory().isPresent())
-        filterQuery
-                .append("&category=")
-                .append(this.getCategory().get());
+        StringBuilder filterQuery = new StringBuilder();
+        filterQuery.append("?vs_currency=").append(this.getVsCurrency().get())
+                .append("&order=").append(this.getOrder().orElse("market_cap_desc"))
+                .append("&per_page=").append(this.getPerPage().orElse("100"))
+                .append("&page=").append(this.getNumPage().orElse("1"))
+                .append("&sparkline=").append(this.getSparkline().orElse("false"));
 
-  if(this.getPriceChangePercentage().isPresent())
-        filterQuery
-                .append("&price_change_percentage")
-                .append(this.getPriceChangePercentage().get());
+        if (this.getIdsCurrency().isPresent())
+            filterQuery
+                    .append("&ids=")
+                    .append(this.getIdsCurrency().get());
 
-  return filterQuery.toString();
- }
+        if (this.getCategory().isPresent())
+            filterQuery
+                    .append("&category=")
+                    .append(this.getCategory().get());
+
+        if (this.getPriceChangePercentage().isPresent())
+            filterQuery
+                    .append("&price_change_percentage")
+                    .append(this.getPriceChangePercentage().get());
+
+        return filterQuery.toString();
+    }
 
 
 }
