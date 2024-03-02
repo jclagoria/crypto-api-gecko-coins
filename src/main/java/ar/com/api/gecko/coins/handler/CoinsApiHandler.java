@@ -1,10 +1,14 @@
 package ar.com.api.gecko.coins.handler;
 
 import ar.com.api.gecko.coins.dto.*;
+import ar.com.api.gecko.coins.exception.ApiCustomException;
+import ar.com.api.gecko.coins.exception.ApiServerErrorException;
 import ar.com.api.gecko.coins.model.*;
 import ar.com.api.gecko.coins.services.CoinsGeckoService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
@@ -19,13 +23,19 @@ public class CoinsApiHandler {
 
     public Mono<ServerResponse> getListOfCoins(ServerRequest sRequest) {
 
-        log.info("In getListOfCoins");
+        log.info("In getListOfCoins {}", sRequest.path());
 
-        return ServerResponse
-                .ok()
-                .body(
-                        coinsGeckoService.getListOfCoins(),
-                        CoinBase.class);
+        return coinsGeckoService.getListOfCoins()
+                .collectList()
+                .flatMap(listCoins -> ServerResponse.ok()
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue(listCoins))
+                .doOnSubscribe(subscription -> log.info("Retrieving list of Coins"))
+                .switchIfEmpty(ServerResponse.notFound().build())
+                .onErrorResume(error -> Mono.error(
+                        new ApiCustomException("An expected error occurred in getListOfCoins",
+                                HttpStatus.INTERNAL_SERVER_ERROR)
+                ));
     }
 
     public Mono<ServerResponse> getMarkets(ServerRequest sRequest) {

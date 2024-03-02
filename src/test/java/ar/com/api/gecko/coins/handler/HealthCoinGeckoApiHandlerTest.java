@@ -1,6 +1,5 @@
 package ar.com.api.gecko.coins.handler;
 
-import ar.com.api.gecko.coins.enums.ErrorTypesEnum;
 import ar.com.api.gecko.coins.exception.ApiClientErrorException;
 import ar.com.api.gecko.coins.model.Ping;
 import ar.com.api.gecko.coins.services.HealthCoinGeckoApiStatus;
@@ -12,7 +11,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.http.HttpStatus;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
