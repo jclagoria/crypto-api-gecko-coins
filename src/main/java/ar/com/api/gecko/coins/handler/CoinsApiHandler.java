@@ -1,10 +1,14 @@
 package ar.com.api.gecko.coins.handler;
 
 import ar.com.api.gecko.coins.dto.*;
+import ar.com.api.gecko.coins.enums.ErrorTypesEnum;
+import ar.com.api.gecko.coins.exception.ApiClientErrorException;
 import ar.com.api.gecko.coins.exception.ApiCustomException;
-import ar.com.api.gecko.coins.exception.ApiServerErrorException;
+import ar.com.api.gecko.coins.exception.ApiValidatorException;
 import ar.com.api.gecko.coins.model.*;
 import ar.com.api.gecko.coins.services.CoinsGeckoService;
+import ar.com.api.gecko.coins.handler.utilities.HandleUtils;
+import ar.com.api.gecko.coins.validators.ValidatorOfDTOComponent;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -19,7 +23,8 @@ import reactor.core.publisher.Mono;
 @Slf4j
 public class CoinsApiHandler {
 
-    private CoinsGeckoService coinsGeckoService;
+    private final CoinsGeckoService coinsGeckoService;
+    private final ValidatorOfDTOComponent validatorComponent;
 
     public Mono<ServerResponse> getListOfCoins(ServerRequest sRequest) {
 
@@ -39,26 +44,22 @@ public class CoinsApiHandler {
     }
 
     public Mono<ServerResponse> getMarkets(ServerRequest sRequest) {
+        log.info("Fetching List of Market by Currency from CoinGecko API");
 
-        log.info("In getMarkets");
-
-        MarketDTO marketFilter = MarketDTO
-                .builder()
-                .vsCurrency(sRequest.queryParam("vsCurrency"))
-                .order(sRequest.queryParam("order"))
-                .perPage(sRequest.queryParam("perPage"))
-                .numPage(sRequest.queryParam("numPage"))
-                .sparkline(sRequest.queryParam("sparkline"))
-                .priceChangePercentage(sRequest.queryParam("priceChangePercentage"))
-                .idsCurrency(sRequest.queryParam("idsCurrency"))
-                .category(sRequest.queryParam("category"))
-                .build();
-
-        return ServerResponse
-                .ok()
-                .body(
-                        coinsGeckoService.getListOfMarkets(marketFilter),
-                        Market.class);
+        return Mono.just(sRequest)
+                .flatMap(HandleUtils::createMarketDTOFromRequest)
+                .flatMap(validatorComponent::validation)
+                .flatMapMany(coinsGeckoService::getListOfMarkets)
+                .collectList()
+                .flatMap(markets -> ServerResponse.ok()
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue(markets))
+                .switchIfEmpty(ServerResponse.notFound().build())
+                .onErrorResume(error -> Mono
+                        .error(new ApiClientErrorException("An expected error occurred in getMarkets",
+                                HttpStatus.INTERNAL_SERVER_ERROR,
+                                ErrorTypesEnum.API_SERVER_ERROR))
+                );
     }
 
     public Mono<ServerResponse> getCoinById(ServerRequest sRequest) {
