@@ -21,7 +21,7 @@ public class CoinFilterDTO implements IFilterDTO {
     public String getUrlFilterString() {
         StringBuilder urlService = new StringBuilder();
 
-        urlService.append("/").append(idCoin)
+        urlService
                 .append("?localization=").append(localization.orElse("true"))
                 .append("&tickers=").append(tickers.orElse("true"))
                 .append("&market_data=").append(marketData.orElse("true"))
