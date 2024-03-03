@@ -55,6 +55,7 @@ public class CoinsApiHandler {
                         .contentType(MediaType.APPLICATION_JSON)
                         .bodyValue(markets))
                 .switchIfEmpty(ServerResponse.notFound().build())
+                .doOnSubscribe(subscription -> log.info("Retrieving list of Markets by Currency"))
                 .onErrorResume(error -> Mono
                         .error(new ApiClientErrorException("An expected error occurred in getMarkets",
                                 HttpStatus.INTERNAL_SERVER_ERROR,
@@ -64,25 +65,22 @@ public class CoinsApiHandler {
 
     public Mono<ServerResponse> getCoinById(ServerRequest sRequest) {
 
-        log.info("In getCoinById");
+        log.info("Fetching Coin by ID from  CoinGecko API");
 
-        CoinFilterDTO coinFilter = CoinFilterDTO
-                .builder()
-                .idCoin(sRequest.pathVariable("idCoin"))
-                .localization(sRequest.queryParam("localization"))
-                .tickers(sRequest.queryParam("tickers"))
-                .marketData(sRequest.queryParam("marketData"))
-                .communityData(sRequest.queryParam("communityData"))
-                .developerData(sRequest.queryParam("developerData"))
-                .sparkline(sRequest.queryParam("sparkline"))
-                .build();
-
-
-        return ServerResponse
-                .ok()
-                .body(
-                        coinsGeckoService.getCoinById(coinFilter),
-                        CoinInfo.class);
+        return Mono.just(sRequest)
+                .flatMap(HandleUtils::createCoinFilterDTOFromRequest)
+                .flatMap(validatorComponent::validation)
+                .flatMap(coinsGeckoService::getCoinById)
+                .flatMap(coinInf -> ServerResponse.ok()
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue(coinInf))
+                .switchIfEmpty(ServerResponse.notFound().build())
+                .doOnSubscribe(subscription -> log.info("Retrieving info of Coin by ID"))
+                .onErrorResume(error -> Mono
+                        .error(new ApiClientErrorException("An expected error occurred in getMarkets",
+                                HttpStatus.INTERNAL_SERVER_ERROR,
+                                ErrorTypesEnum.API_SERVER_ERROR))
+                );
     }
 
     public Mono<ServerResponse> getTickersById(ServerRequest sRequest) {

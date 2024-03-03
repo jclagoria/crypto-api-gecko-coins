@@ -2,10 +2,12 @@ package ar.com.api.gecko.coins.services;
 
 import ar.com.api.gecko.coins.configuration.ExternalServerConfig;
 import ar.com.api.gecko.coins.configuration.HttpServiceCall;
+import ar.com.api.gecko.coins.dto.CoinFilterDTO;
 import ar.com.api.gecko.coins.dto.MarketDTO;
 import ar.com.api.gecko.coins.enums.ErrorTypesEnum;
 import ar.com.api.gecko.coins.exception.ApiServerErrorException;
 import ar.com.api.gecko.coins.model.CoinBase;
+import ar.com.api.gecko.coins.model.CoinInfo;
 import ar.com.api.gecko.coins.model.Market;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.*;
@@ -14,6 +16,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.http.HttpStatus;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
 import java.util.ArrayList;
@@ -37,6 +40,7 @@ class CoinsGeckoServiceTest {
         MockitoAnnotations.openMocks(this);
         given(externalServerConfigMock.getCoinList()).willReturn("listOfCoinsGeckoMock");
         given(externalServerConfigMock.getMarkets()).willReturn("listOfMarketsUrlMock");
+        given(externalServerConfigMock.getCoinById()).willReturn("getCoinByIdUrlMock");
     }
 
     @AfterEach
@@ -201,4 +205,81 @@ class CoinsGeckoServiceTest {
         verify(httpServiceCallMock).getFluxObject(
                 "listOfMarketsUrlMock" + filterDTO.getUrlFilterString(), Market.class);
     }
+
+    @Test
+    @DisplayName("Ensure successful retrieval of CoinGecko service of Coin By ID")
+    void whenGetCoinById_ThenItShouldCallAndFetchSuccessfully() {
+        CoinInfo expectedCoinInfo = Instancio.create(CoinInfo.class);
+        CoinFilterDTO filterDTO = Instancio.create(CoinFilterDTO.class);
+        given(httpServiceCallMock.getMonoObject(eq("getCoinByIdUrlMock"
+                + filterDTO.getUrlFilterString()), eq(CoinInfo.class))).willReturn(Mono.just(expectedCoinInfo));
+
+        Mono<CoinInfo> actualObject = coinsGeckoService.getCoinById(filterDTO);
+
+        StepVerifier
+                .create(actualObject)
+                .expectNext(expectedCoinInfo)
+                .verifyComplete();
+
+        verify(externalServerConfigMock, times(1)).getCoinById();
+        verify(httpServiceCallMock).getMonoObject("getCoinByIdUrlMock"
+                + filterDTO.getUrlFilterString(), CoinInfo.class);
+    }
+
+    @Test
+    @DisplayName("Handle 4xx errors when retrieving CoinGecko of Coin by ID")
+    void whenGetCoinById_ThenItShouldCallAndFetchAndHandleOnStatus4xx() {
+        CoinFilterDTO filterDTO = Instancio.create(CoinFilterDTO.class);
+        ApiServerErrorException expectedError = new ApiServerErrorException("Failed to retrieve info of Coin By ID",
+                "Not Acceptable",
+                ErrorTypesEnum.GECKO_CLIENT_ERROR,
+                HttpStatus.NOT_ACCEPTABLE);
+        given(httpServiceCallMock.getMonoObject(eq("getCoinByIdUrlMock"
+                + filterDTO.getUrlFilterString()), eq(CoinInfo.class))).willReturn(Mono.error(expectedError));
+
+        Mono<CoinInfo> actualObject = coinsGeckoService.getCoinById(filterDTO);
+
+        StepVerifier
+                .create(actualObject)
+                .expectErrorMatches(throwable ->
+                        throwable instanceof ApiServerErrorException &&
+                                ((ApiServerErrorException) throwable).getHttpStatus().is4xxClientError() &&
+                                ((ApiServerErrorException) throwable).getErrorTypesEnum()
+                                        .equals(ErrorTypesEnum.GECKO_CLIENT_ERROR))
+                .verify();
+
+        verify(externalServerConfigMock, times(1)).getCoinById();
+        verify(httpServiceCallMock).getMonoObject("getCoinByIdUrlMock"
+                + filterDTO.getUrlFilterString(), CoinInfo.class);
+
+    }
+
+    @Test
+    @DisplayName("Handle 5xx errors when retrieving CoinGecko of Coin by ID")
+    void whenGetCoinById_ThenItShouldCallAndFetchAndHandleOnStatus5xx() {
+        CoinFilterDTO filterDTO = Instancio.create(CoinFilterDTO.class);
+        ApiServerErrorException expectedError = new ApiServerErrorException("An expected error occurred",
+                "Bandwidth Limit Exceeded",
+                ErrorTypesEnum.GECKO_SERVER_ERROR,
+                HttpStatus.BANDWIDTH_LIMIT_EXCEEDED);
+        given(httpServiceCallMock.getMonoObject(eq("getCoinByIdUrlMock"
+                + filterDTO.getUrlFilterString()), eq(CoinInfo.class))).willReturn(Mono.error(expectedError));
+
+        Mono<CoinInfo> actualObject = coinsGeckoService.getCoinById(filterDTO);
+
+        StepVerifier
+                .create(actualObject)
+                .expectErrorMatches(throwable ->
+                        throwable instanceof ApiServerErrorException &&
+                                ((ApiServerErrorException) throwable).getHttpStatus().is5xxServerError() &&
+                                ((ApiServerErrorException) throwable).getErrorTypesEnum()
+                                        .equals(ErrorTypesEnum.GECKO_SERVER_ERROR))
+                .verify();
+
+        verify(externalServerConfigMock, times(1)).getCoinById();
+        verify(httpServiceCallMock).getMonoObject("getCoinByIdUrlMock"
+                + filterDTO.getUrlFilterString(), CoinInfo.class);
+
+    }
+
 }
