@@ -1,5 +1,7 @@
 package ar.com.api.gecko.coins.dto;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -9,7 +11,9 @@ import java.util.Optional;
 @Builder
 public class MarketDTO implements IFilterDTO {
 
-    private Optional<String> vsCurrency;
+    @NotBlank(message = "Id cannot be blanc.")
+    @NotEmpty(message = "Id cannot be empty.")
+    private String vsCurrency;
     private Optional<String> order;
     private Optional<String> perPage;
     private Optional<String> numPage;
@@ -17,31 +21,25 @@ public class MarketDTO implements IFilterDTO {
     private Optional<String> priceChangePercentage;
     private Optional<String> idsCurrency;
     private Optional<String> category;
+    private Optional<String> locale;
+    private Optional<String> precision;
 
     @Override
     public String getUrlFilterString() {
 
         StringBuilder filterQuery = new StringBuilder();
-        filterQuery.append("?vs_currency=").append(this.getVsCurrency().get())
+        filterQuery.append("?vs_currency=").append(this.getVsCurrency())
                 .append("&order=").append(this.getOrder().orElse("market_cap_desc"))
                 .append("&per_page=").append(this.getPerPage().orElse("100"))
                 .append("&page=").append(this.getNumPage().orElse("1"))
-                .append("&sparkline=").append(this.getSparkline().orElse("false"));
+                .append("&sparkline=").append(this.getSparkline().orElse("false"))
+                .append("&locale=").append(this.getLocale().orElse("en"))
+                .append("&precision=").append(this.getPrecision().orElse("18"));
 
-        if (this.getIdsCurrency().isPresent())
-            filterQuery
-                    .append("&ids=")
-                    .append(this.getIdsCurrency().get());
-
-        if (this.getCategory().isPresent())
-            filterQuery
-                    .append("&category=")
-                    .append(this.getCategory().get());
-
-        if (this.getPriceChangePercentage().isPresent())
-            filterQuery
-                    .append("&price_change_percentage")
-                    .append(this.getPriceChangePercentage().get());
+        this.getIdsCurrency().ifPresent(ids -> filterQuery.append("&ids=").append(ids));
+        this.getCategory().ifPresent(category -> filterQuery.append("&category=").append(category));
+       this.getPriceChangePercentage().ifPresent(price ->
+               filterQuery.append("&price_change_percentage=").append(price));
 
         return filterQuery.toString();
     }

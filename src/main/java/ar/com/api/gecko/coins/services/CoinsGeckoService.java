@@ -28,16 +28,19 @@ public class CoinsGeckoService {
         return  httpServiceCall.getFluxObject(externalServerConfig.getCoinList(), CoinBase.class);
     }
 
+    public Flux<Market> getListOfMarkets(MarketDTO marketFilter) {
+
+        log.info("Fetch Service: {}", externalServerConfig.getMarkets()
+                + marketFilter.getUrlFilterString());
+
+        return httpServiceCall.getFluxObject(
+                externalServerConfig.getMarkets() + marketFilter.getUrlFilterString(),
+                Market.class);
+    }
+
     public Mono<CoinInfo> getCoinById(CoinFilterDTO idFilter) {
 
         log.info("Fetch Service: {}", externalServerConfig.getCoinById() + idFilter.getUrlFilterString());
-
-        return null;
-    }
-
-    public Flux<Market> getListOfMarkets(MarketDTO marketFilter) {
-
-        log.info("Fetch Service: {}", externalServerConfig.getMarkets() + marketFilter.getUrlFilterString());
 
         return null;
     }
