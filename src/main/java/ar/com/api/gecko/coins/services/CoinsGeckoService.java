@@ -40,9 +40,13 @@ public class CoinsGeckoService {
 
     public Mono<CoinInfo> getCoinById(CoinFilterDTO idFilter) {
 
-        log.info("Fetch Service: {}", externalServerConfig.getCoinById() + idFilter.getUrlFilterString());
+        String idCoin = String.format(externalServerConfig.getCoinById(), idFilter.getIdCoin());
 
-        return null;
+        log.info("Fetch Service: {}", idCoin + idFilter.getUrlFilterString());
+
+        return httpServiceCall.getMonoObject(
+                idCoin + idFilter.getUrlFilterString(),
+                CoinInfo.class);
     }
 
     public Flux<CoinTickerById> getTickerById(TickerByIdDTO tickerByIdDTO) {

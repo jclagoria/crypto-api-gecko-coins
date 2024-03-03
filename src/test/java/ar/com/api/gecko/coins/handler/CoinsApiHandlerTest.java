@@ -1,10 +1,12 @@
 package ar.com.api.gecko.coins.handler;
 
+import ar.com.api.gecko.coins.dto.CoinFilterDTO;
 import ar.com.api.gecko.coins.dto.MarketDTO;
 import ar.com.api.gecko.coins.enums.ErrorTypesEnum;
 import ar.com.api.gecko.coins.exception.ApiClientErrorException;
 import ar.com.api.gecko.coins.exception.ApiCustomException;
 import ar.com.api.gecko.coins.model.CoinBase;
+import ar.com.api.gecko.coins.model.CoinInfo;
 import ar.com.api.gecko.coins.model.Market;
 import ar.com.api.gecko.coins.services.CoinsGeckoService;
 import ar.com.api.gecko.coins.validators.ValidatorOfDTOComponent;
@@ -114,7 +116,6 @@ class CoinsApiHandlerTest {
     @Test
     @DisplayName("Ensure error handling in getMarkets returns INTERNAL_SERVER_ERROR")
     void whenGetMarketsEncountersError_ThenItShouldHandleErrorAndReturnInternalServerError() {
-        MarketDTO filterDTO = Instancio.create(MarketDTO.class);
         given(coinsGeckoServiceMock.getListOfCoins())
                 .willReturn(Flux.error(new RuntimeException("Unexpected error")));
 
@@ -126,6 +127,44 @@ class CoinsApiHandlerTest {
                         ((ApiClientErrorException) throwable).getErrorTypesEnum()
                                 .equals(ErrorTypesEnum.API_SERVER_ERROR) &&
                         throwable.getLocalizedMessage().equals("An expected error occurred in getMarkets"))
+                .verify();
+
+    }
+
+    @Test
+    @DisplayName("Ensure successful retrieval a Coin by ID from service status 200 form Handler")
+    void whenGetCoinById_ThenItShouldCallDependenciesAndFetchSuccessfully() {
+        CoinInfo expectedObject = Instancio.create(CoinInfo.class);
+        CoinFilterDTO filterDTO = Instancio.create(CoinFilterDTO.class);
+        given(serverRequestMock.pathVariable(anyString())).willReturn("bitcoin");
+        given(validatorOfDTOComponentMock.validation(any())).willReturn(Mono.just(filterDTO));
+        given(coinsGeckoServiceMock.getCoinById(any(CoinFilterDTO.class))).willReturn(Mono.just(expectedObject));
+
+        Mono<ServerResponse> expectedResponse = coinsApiHandler.getCoinById(serverRequestMock);
+
+        StepVerifier
+                .create(expectedResponse)
+                .expectNextMatches(serverResponse ->
+                        serverResponse.statusCode().is2xxSuccessful())
+                .verifyComplete();
+
+        verify(coinsGeckoServiceMock, times(1)).getCoinById(filterDTO);
+    }
+
+    @Test
+    @DisplayName("Ensure error handling in getCoinById returns INTERNAL_SERVER_ERROR")
+    void whenGetCoinById__ThenItShouldHandleErrorAndReturnInternalServerError() {
+        given(coinsGeckoServiceMock.getCoinById(any(CoinFilterDTO.class)))
+                .willReturn(Mono.error(new RuntimeException("Unexpected error")));
+
+        Mono<ServerResponse> errorResponse = coinsApiHandler.getCoinById(serverRequestMock);
+
+        StepVerifier.create(errorResponse)
+                .expectErrorMatches(throwable ->
+                        throwable instanceof ApiClientErrorException &&
+                                ((ApiClientErrorException) throwable).getErrorTypesEnum()
+                                        .equals(ErrorTypesEnum.API_SERVER_ERROR) &&
+                                throwable.getLocalizedMessage().equals("An expected error occurred in getMarkets"))
                 .verify();
 
     }
