@@ -59,13 +59,14 @@ public class CoinsGeckoService {
                 CoinTickerById.class);
     }
 
-    public Flux<CoinHistoryById> getCoinHistoryByIdAndDate(HistoryCoinDTO coinFilter) {
+    public Mono<CoinHistoryById> getCoinHistoryByIdAndDate(HistoryCoinDTO coinFilter) {
 
         String urlHistoryCoin = String.format(externalServerConfig.getHistoryCoin(), coinFilter.getIdCoin());
 
         log.info("Fetch Service: {}", urlHistoryCoin + coinFilter.getUrlFilterString());
 
-        return null;
+        return httpServiceCall.getMonoObject(urlHistoryCoin + coinFilter.getUrlFilterString(),
+                CoinHistoryById.class);
     }
 
     public Flux<MarketChartById> getMarketChartById(MarketChatBiIdDTO marketChartByIdDTO) {
