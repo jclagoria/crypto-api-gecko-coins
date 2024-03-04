@@ -11,6 +11,7 @@ import ar.com.api.gecko.coins.model.CoinBase;
 import ar.com.api.gecko.coins.model.CoinInfo;
 import ar.com.api.gecko.coins.model.CoinTickerById;
 import ar.com.api.gecko.coins.model.Market;
+import ar.com.api.gecko.coins.utils.CoinsTestUtils;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.*;
 import org.mockito.InjectMocks;
@@ -19,14 +20,12 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.http.HttpStatus;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.test.StepVerifier;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Optional;
 
-import static org.mockito.BDDMockito.*;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.BDDMockito.*;
 
 class CoinsGeckoServiceTest {
 
@@ -64,14 +63,10 @@ class CoinsGeckoServiceTest {
 
         Flux<CoinBase> actualObject = coinsGeckoService.getListOfCoins();
 
-        StepVerifier.create(actualObject)
-                .recordWith(ArrayList::new)
-                .thenConsumeWhile(item -> true)
-                .consumeRecordedWith(listOfCoins -> {
-                    Assertions.assertEquals(expectedListOfCoins.size(), listOfCoins.size());
-                    Assertions.assertTrue(listOfCoins.containsAll(expectedListOfCoins));
-                })
-                .verifyComplete();
+        CoinsTestUtils.assertFluxSuccess(actualObject, listOfCoins -> {
+            Assertions.assertEquals(expectedListOfCoins.size(), listOfCoins.size());
+            Assertions.assertTrue(listOfCoins.containsAll(expectedListOfCoins));
+        });
 
         verify(externalServerConfigMock, times(2)).getCoinList();
         verify(httpServiceCallMock).getFluxObject("listOfCoinsGeckoMock", CoinBase.class);
@@ -81,23 +76,16 @@ class CoinsGeckoServiceTest {
     @DisplayName("Handle 4xx errors when retrieving CoinGecko List of Coins")
     void whenGetListOfCoinsGeckoServiceCalled_ThenItShouldCallAndFetchAndHandleOnStatus4xx() {
         ApiServerErrorException expectedException =
-                new ApiServerErrorException("Failed to retrieve info", "Upgrade Required",
+                new ApiServerErrorException("Failed to retrieve list of Coins", "Upgrade Required",
                         ErrorTypesEnum.GECKO_CLIENT_ERROR, HttpStatus.UPGRADE_REQUIRED);
         given(httpServiceCallMock.getFluxObject(eq("listOfCoinsGeckoMock"), eq(CoinBase.class)))
                 .willReturn(Flux.error(expectedException));
 
         Flux<CoinBase> actualObject = coinsGeckoService.getListOfCoins();
 
-        StepVerifier
-                .create(actualObject)
-                .expectErrorMatches(throwable ->
-                    throwable instanceof ApiServerErrorException &&
-                            throwable.getMessage().contains("Failed to retrieve info") &&
-                            ((ApiServerErrorException) throwable).getHttpStatus().is4xxClientError() &&
-                            ((ApiServerErrorException) throwable).getErrorTypesEnum()
-                                    .equals(ErrorTypesEnum.GECKO_CLIENT_ERROR)
-                )
-                .verify();
+        CoinsTestUtils.assertService4xxClientError(actualObject,
+                "Failed to retrieve list of Coins",
+                ErrorTypesEnum.GECKO_CLIENT_ERROR);
 
         verify(externalServerConfigMock, times(2)).getCoinList();
         verify(httpServiceCallMock).getFluxObject("listOfCoinsGeckoMock", CoinBase.class);
@@ -114,16 +102,8 @@ class CoinsGeckoServiceTest {
 
         Flux<CoinBase> actualObject = coinsGeckoService.getListOfCoins();
 
-        StepVerifier
-                .create(actualObject)
-                .expectErrorMatches(throwable ->
-                        throwable instanceof ApiServerErrorException &&
-                                throwable.getMessage().contains("An expected error occurred") &&
-                                ((ApiServerErrorException) throwable).getHttpStatus().is5xxServerError() &&
-                                ((ApiServerErrorException) throwable).getErrorTypesEnum()
-                                        .equals(ErrorTypesEnum.GECKO_SERVER_ERROR)
-                )
-                .verify();
+        CoinsTestUtils.assertService5xxServerError(actualObject, "An expected error occurred",
+                ErrorTypesEnum.GECKO_SERVER_ERROR);
 
         verify(externalServerConfigMock, times(2)).getCoinList();
         verify(httpServiceCallMock).getFluxObject("listOfCoinsGeckoMock", CoinBase.class);
@@ -141,14 +121,10 @@ class CoinsGeckoServiceTest {
 
         Flux<Market> actualObject = coinsGeckoService.getListOfMarkets(filterDTO);
 
-        StepVerifier.create(actualObject)
-                .recordWith(ArrayList::new)
-                .thenConsumeWhile(item -> true)
-                .consumeRecordedWith(listOfMarket ->{
-                    Assertions.assertEquals(expectedListOfMarkets.size(), listOfMarket.size());
-                    Assertions.assertTrue(listOfMarket.containsAll(expectedListOfMarkets));
-                })
-                .verifyComplete();
+        CoinsTestUtils.assertFluxSuccess(actualObject, listOfMarket ->{
+            Assertions.assertEquals(expectedListOfMarkets.size(), listOfMarket.size());
+            Assertions.assertTrue(listOfMarket.containsAll(expectedListOfMarkets));
+        });
 
         verify(externalServerConfigMock, atLeast(2)).getMarkets();
         verify(httpServiceCallMock).getFluxObject("listOfMarketsUrlMock"
@@ -168,15 +144,9 @@ class CoinsGeckoServiceTest {
 
         Flux<Market> actualObject = coinsGeckoService.getListOfMarkets(filterDTO);
 
-        StepVerifier
-                .create(actualObject)
-                .expectErrorMatches(throwable ->
-                        throwable instanceof ApiServerErrorException &&
-                                throwable.getMessage().contains("Failed to retrieve info of Markets") &&
-                                ((ApiServerErrorException) throwable).getHttpStatus().is4xxClientError() &&
-                                ((ApiServerErrorException) throwable).getErrorTypesEnum()
-                                        .equals(ErrorTypesEnum.GECKO_CLIENT_ERROR))
-                .verify();
+        CoinsTestUtils.assertService4xxClientError(actualObject,
+                "Failed to retrieve info of Markets",
+                ErrorTypesEnum.GECKO_CLIENT_ERROR);
 
         verify(externalServerConfigMock, times(2)).getMarkets();
         verify(httpServiceCallMock).getFluxObject(
@@ -196,15 +166,8 @@ class CoinsGeckoServiceTest {
 
         Flux<Market> actualObject = coinsGeckoService.getListOfMarkets(filterDTO);
 
-        StepVerifier
-                .create(actualObject)
-                .expectErrorMatches(throwable ->
-                        throwable instanceof ApiServerErrorException &&
-                                throwable.getMessage().contains("An expected error occurred") &&
-                                ((ApiServerErrorException) throwable).getHttpStatus().is5xxServerError() &&
-                                ((ApiServerErrorException) throwable).getErrorTypesEnum()
-                                        .equals(ErrorTypesEnum.GECKO_SERVER_ERROR))
-                .verify();
+        CoinsTestUtils.assertService5xxServerError(actualObject, "An expected error occurred",
+                ErrorTypesEnum.GECKO_SERVER_ERROR);
 
         verify(externalServerConfigMock, times(2)).getMarkets();
         verify(httpServiceCallMock).getFluxObject(
@@ -221,18 +184,16 @@ class CoinsGeckoServiceTest {
 
         Mono<CoinInfo> actualObject = coinsGeckoService.getCoinById(filterDTO);
 
-        StepVerifier
-                .create(actualObject)
-                .assertNext( coinInfoExpected -> {
-                    Optional.ofNullable(coinInfoExpected.getAssetPlatformId()).ifPresentOrElse(
-                            name -> {},
-                            () -> fail("Assert Platform not be null"));
+        CoinsTestUtils.assertMonoSuccess(actualObject, coinInfoExpected -> {
+            Optional.ofNullable(coinInfoExpected.getAssetPlatformId()).ifPresentOrElse(
+                    name -> {},
+                    () -> fail("Assert Platform not be null"));
 
-                    Optional.ofNullable(coinInfoExpected.getSentimentVotesDownPercentage()).ifPresentOrElse(
-                            sentimentVotesDown -> {},
-                            () -> fail("Sentiment Vote Down not be null")
-                    );
-                }).verifyComplete();
+            Optional.ofNullable(coinInfoExpected.getSentimentVotesDownPercentage()).ifPresentOrElse(
+                    sentimentVotesDown -> {},
+                    () -> fail("Sentiment Vote Down not be null")
+            );
+        });
 
         verify(externalServerConfigMock, times(1)).getCoinById();
         verify(httpServiceCallMock).getMonoObject("getCoinByIdUrlMock"
@@ -252,14 +213,9 @@ class CoinsGeckoServiceTest {
 
         Mono<CoinInfo> actualObject = coinsGeckoService.getCoinById(filterDTO);
 
-        StepVerifier
-                .create(actualObject)
-                .expectErrorMatches(throwable ->
-                        throwable instanceof ApiServerErrorException &&
-                                ((ApiServerErrorException) throwable).getHttpStatus().is4xxClientError() &&
-                                ((ApiServerErrorException) throwable).getErrorTypesEnum()
-                                        .equals(ErrorTypesEnum.GECKO_CLIENT_ERROR))
-                .verify();
+        CoinsTestUtils.assertService4xxClientError(actualObject,
+                "Failed to retrieve info of Coin By ID",
+                ErrorTypesEnum.GECKO_CLIENT_ERROR);
 
         verify(externalServerConfigMock, times(1)).getCoinById();
         verify(httpServiceCallMock).getMonoObject("getCoinByIdUrlMock"
@@ -280,14 +236,8 @@ class CoinsGeckoServiceTest {
 
         Mono<CoinInfo> actualObject = coinsGeckoService.getCoinById(filterDTO);
 
-        StepVerifier
-                .create(actualObject)
-                .expectErrorMatches(throwable ->
-                        throwable instanceof ApiServerErrorException &&
-                                ((ApiServerErrorException) throwable).getHttpStatus().is5xxServerError() &&
-                                ((ApiServerErrorException) throwable).getErrorTypesEnum()
-                                        .equals(ErrorTypesEnum.GECKO_SERVER_ERROR))
-                .verify();
+        CoinsTestUtils.assertService5xxServerError(actualObject, "An expected error occurred",
+                ErrorTypesEnum.GECKO_SERVER_ERROR);
 
         verify(externalServerConfigMock, times(1)).getCoinById();
         verify(httpServiceCallMock).getMonoObject("getCoinByIdUrlMock"
@@ -305,22 +255,20 @@ class CoinsGeckoServiceTest {
 
         Mono<CoinTickerById> actualObject = coinsGeckoService.getTickerById(filterDTO);
 
-        StepVerifier
-                .create(actualObject)
-                .assertNext(coinTickerById -> {
-                    Optional.ofNullable(coinTickerById.getName()).ifPresentOrElse(
-                            name -> {},
-                            () -> fail("Name should not be null"));
-                    Optional.ofNullable(coinTickerById.getTickers()).ifPresentOrElse(
-                            tickers -> {
-                                assertFalse(tickers.isEmpty(), "Tickers should not be empty");
-                                tickers.forEach(ticker -> {
-                                    assertNotNull(ticker.getBase(), "Base should not be null");
-                                    assertNotNull(ticker.getTarget(), "Target should not be null");
-                                });
-                            },
-                            () -> fail("Tickers should not be null"));                })
-                .verifyComplete();
+        CoinsTestUtils.assertMonoSuccess(actualObject, coinTickerById -> {
+            Optional.ofNullable(coinTickerById.getName()).ifPresentOrElse(
+                    name -> {},
+                    () -> fail("Name should not be null"));
+            Optional.ofNullable(coinTickerById.getTickers()).ifPresentOrElse(
+                    tickers -> {
+                        assertFalse(tickers.isEmpty(), "Tickers should not be empty");
+                        tickers.forEach(ticker -> {
+                            assertNotNull(ticker.getBase(), "Base should not be null");
+                            assertNotNull(ticker.getTarget(), "Target should not be null");
+                        });
+                    },
+                    () -> fail("Tickers should not be null"));
+        });
 
         verify(externalServerConfigMock, times(1)).getTickersById();
         verify(httpServiceCallMock).getMonoObject("getTickersByIdUrlMock"
@@ -339,14 +287,9 @@ class CoinsGeckoServiceTest {
 
         Mono<CoinTickerById> actualObject = coinsGeckoService.getTickerById(filterDTO);
 
-        StepVerifier
-                .create(actualObject)
-                .expectErrorMatches(throwable ->
-                        throwable instanceof ApiServerErrorException &&
-                                ((ApiServerErrorException) throwable).getHttpStatus().is4xxClientError() &&
-                                ((ApiServerErrorException) throwable).getErrorTypesEnum()
-                                        .equals(ErrorTypesEnum.GECKO_CLIENT_ERROR))
-                .verify();
+        CoinsTestUtils.assertService4xxClientError(actualObject,
+                "Failed to retrieve info of Ticker by Coin ID",
+                ErrorTypesEnum.GECKO_CLIENT_ERROR);
 
         verify(externalServerConfigMock, times(1)).getTickersById();
         verify(httpServiceCallMock).getMonoObject("getTickersByIdUrlMock"
@@ -365,14 +308,9 @@ class CoinsGeckoServiceTest {
 
         Mono<CoinTickerById> actualObject = coinsGeckoService.getTickerById(filterDTO);
 
-        StepVerifier
-                .create(actualObject)
-                .expectErrorMatches(throwable ->
-                        throwable instanceof ApiServerErrorException &&
-                                ((ApiServerErrorException) throwable).getHttpStatus().is5xxServerError() &&
-                                ((ApiServerErrorException) throwable).getErrorTypesEnum()
-                                        .equals(ErrorTypesEnum.GECKO_SERVER_ERROR))
-                .verify();
+        CoinsTestUtils.assertService5xxServerError(actualObject,
+                "An expected error occurred",
+                ErrorTypesEnum.GECKO_SERVER_ERROR);
 
         verify(externalServerConfigMock, times(1)).getTickersById();
         verify(httpServiceCallMock).getMonoObject("getTickersByIdUrlMock"

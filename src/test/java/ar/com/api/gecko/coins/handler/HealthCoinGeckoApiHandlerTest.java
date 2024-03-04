@@ -1,8 +1,8 @@
 package ar.com.api.gecko.coins.handler;
 
-import ar.com.api.gecko.coins.exception.ApiClientErrorException;
 import ar.com.api.gecko.coins.model.Ping;
 import ar.com.api.gecko.coins.services.HealthCoinGeckoApiStatus;
+import ar.com.api.gecko.coins.utils.CoinsTestUtils;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -11,10 +11,10 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
-import reactor.test.StepVerifier;
 
 import static org.mockito.BDDMockito.*;
 
@@ -48,11 +48,8 @@ class HealthCoinGeckoApiHandlerTest {
 
         Mono<ServerResponse> actualResponseMono = apiHandlerMock.getStatusServiceCoinGecko(serverRequestMock);
 
-        StepVerifier
-                .create(actualResponseMono)
-                .expectNextMatches(response ->
-                        response.statusCode().is2xxSuccessful())
-                .verifyComplete();
+        CoinsTestUtils.assertMonoSuccess(actualResponseMono,
+                serverResponse -> serverResponse.statusCode().is2xxSuccessful());
 
         verify(healthCoinGeckoApiStatusMock, times(1)).getStatusCoinGeckoService();
     }
@@ -65,12 +62,9 @@ class HealthCoinGeckoApiHandlerTest {
 
         Mono<ServerResponse> responseActual = apiHandlerMock.getStatusServiceCoinGecko(serverRequestMock);
 
-        StepVerifier
-                .create(responseActual)
-                .expectErrorMatches(response ->
-                        response instanceof ApiClientErrorException &&
-                        response.getMessage().equals("An expected error occurred in getStatusServiceCoinGecko"))
-                .verify();
+        CoinsTestUtils.assertClient5xxServerError(responseActual,
+                "An expected error occurred in getStatusServiceCoinGecko",
+                HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
 }

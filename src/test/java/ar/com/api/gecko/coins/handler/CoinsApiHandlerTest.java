@@ -3,14 +3,12 @@ package ar.com.api.gecko.coins.handler;
 import ar.com.api.gecko.coins.dto.CoinFilterDTO;
 import ar.com.api.gecko.coins.dto.MarketDTO;
 import ar.com.api.gecko.coins.dto.TickerByIdDTO;
-import ar.com.api.gecko.coins.enums.ErrorTypesEnum;
-import ar.com.api.gecko.coins.exception.ApiClientErrorException;
-import ar.com.api.gecko.coins.exception.ApiCustomException;
 import ar.com.api.gecko.coins.model.CoinBase;
 import ar.com.api.gecko.coins.model.CoinInfo;
 import ar.com.api.gecko.coins.model.CoinTickerById;
 import ar.com.api.gecko.coins.model.Market;
 import ar.com.api.gecko.coins.services.CoinsGeckoService;
+import ar.com.api.gecko.coins.utils.CoinsTestUtils;
 import ar.com.api.gecko.coins.validators.ValidatorOfDTOComponent;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.AfterEach;
@@ -25,7 +23,6 @@ import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.test.StepVerifier;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -66,11 +63,8 @@ class CoinsApiHandlerTest {
 
         Mono<ServerResponse> actualListOfCoins = coinsApiHandler.getListOfCoins(serverRequestMock);
 
-        StepVerifier
-                .create(actualListOfCoins)
-                .expectNextMatches(response ->
-                        response.statusCode().is2xxSuccessful())
-                .verifyComplete();
+        CoinsTestUtils.assertMonoSuccess(actualListOfCoins, serverResponse ->
+                serverResponse.statusCode().is2xxSuccessful());
 
         verify(coinsGeckoServiceMock, times(1)).getListOfCoins();
     }
@@ -83,13 +77,9 @@ class CoinsApiHandlerTest {
 
         Mono<ServerResponse> errorResponse = coinsApiHandler.getListOfCoins(serverRequestMock);
 
-        StepVerifier.create(errorResponse)
-                .expectErrorMatches(throwable -> throwable instanceof ApiCustomException &&
-                        throwable.getMessage()
-                                .contains("An expected error occurred in getListOfCoins") &&
-                        ((ApiCustomException) throwable).getHttpStatus()
-                                == HttpStatus.INTERNAL_SERVER_ERROR)
-                .verify();
+        CoinsTestUtils.assertClient5xxServerError(errorResponse,
+                "An expected error occurred in getListOfCoins",
+                HttpStatus.INTERNAL_SERVER_ERROR);
 
         verify(coinsGeckoServiceMock, times(1)).getListOfCoins();
     }
@@ -105,12 +95,10 @@ class CoinsApiHandlerTest {
         given(coinsGeckoServiceMock.getListOfMarkets(any(MarketDTO.class)))
                 .willReturn(Flux.fromIterable(expectedListOfMarkets));
 
-        Mono<ServerResponse> expectedObject = coinsApiHandler.getMarkets(serverRequestMock);
+        Mono<ServerResponse> expectedResponse = coinsApiHandler.getMarkets(serverRequestMock);
 
-        StepVerifier
-                .create(expectedObject)
-                .expectNextMatches(serverResponse -> serverResponse.statusCode().is2xxSuccessful())
-                .verifyComplete();
+        CoinsTestUtils.assertMonoSuccess(expectedResponse, serverResponse ->
+                serverResponse.statusCode().is2xxSuccessful());
 
         verify(coinsGeckoServiceMock, times(1)).getListOfMarkets(filterDTO);
     }
@@ -123,13 +111,9 @@ class CoinsApiHandlerTest {
 
         Mono<ServerResponse> errorResponse = coinsApiHandler.getMarkets(serverRequestMock);
 
-        StepVerifier.create(errorResponse)
-                .expectErrorMatches(throwable ->
-                        throwable instanceof ApiClientErrorException &&
-                        ((ApiClientErrorException) throwable).getErrorTypesEnum()
-                                .equals(ErrorTypesEnum.API_SERVER_ERROR) &&
-                        throwable.getLocalizedMessage().equals("An expected error occurred in getMarkets"))
-                .verify();
+        CoinsTestUtils.assertClient5xxServerError(errorResponse,
+                "An expected error occurred in getMarkets",
+                HttpStatus.INTERNAL_SERVER_ERROR);
 
     }
 
@@ -144,11 +128,8 @@ class CoinsApiHandlerTest {
 
         Mono<ServerResponse> expectedResponse = coinsApiHandler.getCoinById(serverRequestMock);
 
-        StepVerifier
-                .create(expectedResponse)
-                .expectNextMatches(serverResponse ->
-                        serverResponse.statusCode().is2xxSuccessful())
-                .verifyComplete();
+        CoinsTestUtils.assertMonoSuccess(expectedResponse, serverResponse ->
+                serverResponse.statusCode().is2xxSuccessful());
 
         verify(coinsGeckoServiceMock, times(1)).getCoinById(filterDTO);
     }
@@ -161,13 +142,9 @@ class CoinsApiHandlerTest {
 
         Mono<ServerResponse> errorResponse = coinsApiHandler.getCoinById(serverRequestMock);
 
-        StepVerifier.create(errorResponse)
-                .expectErrorMatches(throwable ->
-                        throwable instanceof ApiClientErrorException &&
-                                ((ApiClientErrorException) throwable).getErrorTypesEnum()
-                                        .equals(ErrorTypesEnum.API_SERVER_ERROR) &&
-                                throwable.getLocalizedMessage().equals("An expected error occurred in getCoinById"))
-                .verify();
+        CoinsTestUtils.assertClient5xxServerError(errorResponse,
+                "An expected error occurred in getCoinById",
+                HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @Test
@@ -182,11 +159,8 @@ class CoinsApiHandlerTest {
 
         Mono<ServerResponse> expectedResponse = coinsApiHandler.getTickersById(serverRequestMock);
 
-        StepVerifier
-                .create(expectedResponse)
-                .expectNextMatches(serverResponse ->
-                        serverResponse.statusCode().is2xxSuccessful())
-                .verifyComplete();
+        CoinsTestUtils.assertMonoSuccess(expectedResponse, serverResponse ->
+                serverResponse.statusCode().is2xxSuccessful());
 
         verify(coinsGeckoServiceMock, times(1)).getTickerById(filterDTO);
     }
@@ -199,14 +173,9 @@ class CoinsApiHandlerTest {
 
         Mono<ServerResponse> errorResponse = coinsApiHandler.getTickersById(serverRequestMock);
 
-        StepVerifier.create(errorResponse)
-                .expectErrorMatches(throwable ->
-                        throwable instanceof ApiClientErrorException &&
-                                ((ApiClientErrorException) throwable).getErrorTypesEnum()
-                                        .equals(ErrorTypesEnum.API_SERVER_ERROR) &&
-                                throwable.getLocalizedMessage()
-                                        .equals("An expected error occurred in getTickersById"))
-                .verify();
+        CoinsTestUtils.assertClient5xxServerError(errorResponse,
+                "An expected error occurred in getTickersById",
+                HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
 }

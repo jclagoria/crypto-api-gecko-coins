@@ -38,8 +38,8 @@ public class CoinsApiHandler {
                 .doOnSubscribe(subscription -> log.info("Retrieving list of Coins"))
                 .switchIfEmpty(ServerResponse.notFound().build())
                 .onErrorResume(error -> Mono.error(
-                        new ApiCustomException("An expected error occurred in getListOfCoins",
-                                HttpStatus.INTERNAL_SERVER_ERROR)
+                        new ApiClientErrorException("An expected error occurred in getListOfCoins",
+                                HttpStatus.INTERNAL_SERVER_ERROR, ErrorTypesEnum.API_SERVER_ERROR)
                 ));
     }
 
