@@ -65,7 +65,7 @@ public class CoinsApiHandler {
 
     public Mono<ServerResponse> getCoinById(ServerRequest sRequest) {
 
-        log.info("Fetching Coin by ID from  CoinGecko API");
+        log.info("Fetching Coin by ID from CoinGecko API");
 
         return Mono.just(sRequest)
                 .flatMap(HandleUtils::createCoinFilterDTOFromRequest)
@@ -77,7 +77,7 @@ public class CoinsApiHandler {
                 .switchIfEmpty(ServerResponse.notFound().build())
                 .doOnSubscribe(subscription -> log.info("Retrieving info of Coin by ID"))
                 .onErrorResume(error -> Mono
-                        .error(new ApiClientErrorException("An expected error occurred in getMarkets",
+                        .error(new ApiClientErrorException("An expected error occurred in getCoinById",
                                 HttpStatus.INTERNAL_SERVER_ERROR,
                                 ErrorTypesEnum.API_SERVER_ERROR))
                 );
@@ -85,23 +85,21 @@ public class CoinsApiHandler {
 
     public Mono<ServerResponse> getTickersById(ServerRequest sRequest) {
 
-        log.info("In getTickersById");
+        log.info("Fetching Tickers by ID from In CoinGecko API");
 
-        TickerByIdDTO tickerbyIdDto = TickerByIdDTO
-                .builder()
-                .idCoin(sRequest.pathVariable("idCoin"))
-                .order(sRequest.queryParam("order"))
-                .page(sRequest.queryParam("page"))
-                .exchangeIds(sRequest.queryParam("exchangeIds"))
-                .includeExchangeLogo(sRequest.queryParam("includeExchangeLogo"))
-                .depth(sRequest.queryParam("depth"))
-                .build();
-
-        return ServerResponse
-                .ok()
-                .body(coinsGeckoService
-                                .getTickerById(tickerbyIdDto),
-                        Tickers.class);
+        return Mono.just(sRequest)
+                .flatMap(HandleUtils::createTickersByIdDTOFromRequest)
+                .flatMap(validatorComponent::validation)
+                .flatMap(coinsGeckoService::getTickerById)
+                .flatMap(tickerById -> ServerResponse.ok()
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue(tickerById)).switchIfEmpty(ServerResponse.notFound().build())
+                .doOnSubscribe(subscription -> log.info("Retrieving info of Tickers by ID"))
+                .onErrorResume(error -> Mono
+                        .error(new ApiClientErrorException("An expected error occurred in getTickersById",
+                                HttpStatus.INTERNAL_SERVER_ERROR,
+                                ErrorTypesEnum.API_SERVER_ERROR))
+                );
     }
 
     public Mono<ServerResponse> getHistoryOfCoin(ServerRequest sRequest) {

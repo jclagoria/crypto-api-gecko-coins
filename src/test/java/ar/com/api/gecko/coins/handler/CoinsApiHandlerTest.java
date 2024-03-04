@@ -2,11 +2,13 @@ package ar.com.api.gecko.coins.handler;
 
 import ar.com.api.gecko.coins.dto.CoinFilterDTO;
 import ar.com.api.gecko.coins.dto.MarketDTO;
+import ar.com.api.gecko.coins.dto.TickerByIdDTO;
 import ar.com.api.gecko.coins.enums.ErrorTypesEnum;
 import ar.com.api.gecko.coins.exception.ApiClientErrorException;
 import ar.com.api.gecko.coins.exception.ApiCustomException;
 import ar.com.api.gecko.coins.model.CoinBase;
 import ar.com.api.gecko.coins.model.CoinInfo;
+import ar.com.api.gecko.coins.model.CoinTickerById;
 import ar.com.api.gecko.coins.model.Market;
 import ar.com.api.gecko.coins.services.CoinsGeckoService;
 import ar.com.api.gecko.coins.validators.ValidatorOfDTOComponent;
@@ -153,7 +155,7 @@ class CoinsApiHandlerTest {
 
     @Test
     @DisplayName("Ensure error handling in getCoinById returns INTERNAL_SERVER_ERROR")
-    void whenGetCoinById__ThenItShouldHandleErrorAndReturnInternalServerError() {
+    void whenGetCoinById_ThenItShouldHandleErrorAndReturnInternalServerError() {
         given(coinsGeckoServiceMock.getCoinById(any(CoinFilterDTO.class)))
                 .willReturn(Mono.error(new RuntimeException("Unexpected error")));
 
@@ -164,8 +166,47 @@ class CoinsApiHandlerTest {
                         throwable instanceof ApiClientErrorException &&
                                 ((ApiClientErrorException) throwable).getErrorTypesEnum()
                                         .equals(ErrorTypesEnum.API_SERVER_ERROR) &&
-                                throwable.getLocalizedMessage().equals("An expected error occurred in getMarkets"))
+                                throwable.getLocalizedMessage().equals("An expected error occurred in getCoinById"))
                 .verify();
-
     }
+
+    @Test
+    @DisplayName("Ensure successful retrieval a Tickers by ID from service status 200 form Handler")
+    void whenGetTickersById_ThenItShouldCallDependenciesAndFetchSuccessfully() {
+        CoinTickerById expectedObject = Instancio.create(CoinTickerById.class);
+        TickerByIdDTO filterDTO = Instancio.create(TickerByIdDTO.class);
+        given(serverRequestMock.pathVariable(anyString())).willReturn("ethereum");
+        given(validatorOfDTOComponentMock.validation(any())).willReturn(Mono.just(filterDTO));
+        given(coinsGeckoServiceMock.getTickerById(any(TickerByIdDTO.class)))
+                .willReturn(Mono.just(expectedObject));
+
+        Mono<ServerResponse> expectedResponse = coinsApiHandler.getTickersById(serverRequestMock);
+
+        StepVerifier
+                .create(expectedResponse)
+                .expectNextMatches(serverResponse ->
+                        serverResponse.statusCode().is2xxSuccessful())
+                .verifyComplete();
+
+        verify(coinsGeckoServiceMock, times(1)).getTickerById(filterDTO);
+    }
+
+    @Test
+    @DisplayName("Ensure error handling in getTickersByI returns INTERNAL_SERVER_ERROR")
+    void whenGetTickersById_ThenItShouldHandleErrorAndReturnInternalServerError() {
+        given(coinsGeckoServiceMock.getTickerById(any(TickerByIdDTO.class)))
+                .willReturn(Mono.error(new RuntimeException("Unexpected error")));
+
+        Mono<ServerResponse> errorResponse = coinsApiHandler.getTickersById(serverRequestMock);
+
+        StepVerifier.create(errorResponse)
+                .expectErrorMatches(throwable ->
+                        throwable instanceof ApiClientErrorException &&
+                                ((ApiClientErrorException) throwable).getErrorTypesEnum()
+                                        .equals(ErrorTypesEnum.API_SERVER_ERROR) &&
+                                throwable.getLocalizedMessage()
+                                        .equals("An expected error occurred in getTickersById"))
+                .verify();
+    }
+
 }
