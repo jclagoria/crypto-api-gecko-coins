@@ -2,6 +2,7 @@ package ar.com.api.gecko.coins.handler.utilities;
 
 import ar.com.api.gecko.coins.dto.CoinFilterDTO;
 import ar.com.api.gecko.coins.dto.MarketDTO;
+import ar.com.api.gecko.coins.dto.TickerByIdDTO;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import reactor.core.publisher.Mono;
 
@@ -32,6 +33,18 @@ public class HandleUtils {
                 .communityData(sRequest.queryParam("communityData"))
                 .developerData(sRequest.queryParam("developerData"))
                 .sparkline(sRequest.queryParam("sparkline"))
+                .build());
+    }
+
+    public static Mono<TickerByIdDTO> createTickersByIdDTOFromRequest(ServerRequest sRequest) {
+        return Mono.just(TickerByIdDTO
+                .builder()
+                .idCoin(sRequest.pathVariable("idCoin"))
+                .order(sRequest.queryParam("order"))
+                .page(sRequest.queryParam("page"))
+                .exchangeIds(sRequest.queryParam("exchangeIds"))
+                .includeExchangeLogo(sRequest.queryParam("includeExchangeLogo"))
+                .depth(sRequest.queryParam("depth"))
                 .build());
     }
 

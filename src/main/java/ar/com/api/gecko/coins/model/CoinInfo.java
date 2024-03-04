@@ -14,7 +14,7 @@ import java.util.Map;
 public class CoinInfo extends CoinBase {
 
     @JsonProperty("asset_platform_id")
-    private String asset_platform_id;
+    private String assetPlatformId;
 
     @JsonProperty("platforms")
     private Map<String, Object> platforms;

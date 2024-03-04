@@ -11,8 +11,8 @@ import java.util.Optional;
 @Builder
 public class MarketDTO implements IFilterDTO {
 
-    @NotBlank(message = "Id cannot be blanc.")
-    @NotEmpty(message = "Id cannot be empty.")
+    @NotBlank(message = "Currency cannot be blanc.")
+    @NotEmpty(message = "Currency cannot be empty.")
     private String vsCurrency;
     private Optional<String> order;
     private Optional<String> perPage;
@@ -38,8 +38,8 @@ public class MarketDTO implements IFilterDTO {
 
         this.getIdsCurrency().ifPresent(ids -> filterQuery.append("&ids=").append(ids));
         this.getCategory().ifPresent(category -> filterQuery.append("&category=").append(category));
-       this.getPriceChangePercentage().ifPresent(price ->
-               filterQuery.append("&price_change_percentage=").append(price));
+        this.getPriceChangePercentage().ifPresent(price ->
+                filterQuery.append("&price_change_percentage=").append(price));
 
         return filterQuery.toString();
     }
