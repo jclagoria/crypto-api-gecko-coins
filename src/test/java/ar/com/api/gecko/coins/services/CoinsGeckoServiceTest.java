@@ -3,14 +3,12 @@ package ar.com.api.gecko.coins.services;
 import ar.com.api.gecko.coins.configuration.ExternalServerConfig;
 import ar.com.api.gecko.coins.configuration.HttpServiceCall;
 import ar.com.api.gecko.coins.dto.CoinFilterDTO;
+import ar.com.api.gecko.coins.dto.HistoryCoinDTO;
 import ar.com.api.gecko.coins.dto.MarketDTO;
 import ar.com.api.gecko.coins.dto.TickerByIdDTO;
 import ar.com.api.gecko.coins.enums.ErrorTypesEnum;
 import ar.com.api.gecko.coins.exception.ApiServerErrorException;
-import ar.com.api.gecko.coins.model.CoinBase;
-import ar.com.api.gecko.coins.model.CoinInfo;
-import ar.com.api.gecko.coins.model.CoinTickerById;
-import ar.com.api.gecko.coins.model.Market;
+import ar.com.api.gecko.coins.model.*;
 import ar.com.api.gecko.coins.utils.CoinsTestUtils;
 import org.instancio.Instancio;
 import org.junit.jupiter.api.*;
@@ -45,6 +43,7 @@ class CoinsGeckoServiceTest {
         given(externalServerConfigMock.getMarkets()).willReturn("listOfMarketsUrlMock");
         given(externalServerConfigMock.getCoinById()).willReturn("getCoinByIdUrlMock");
         given(externalServerConfigMock.getTickersById()).willReturn("getTickersByIdUrlMock");
+        given(externalServerConfigMock.getHistoryCoin()).willReturn("getHistoryOfCoinById");
     }
 
     @AfterEach
@@ -316,5 +315,70 @@ class CoinsGeckoServiceTest {
         verify(httpServiceCallMock).getMonoObject("getTickersByIdUrlMock"
                 + filterDTO.getUrlFilterString(), CoinTickerById.class);
     }
+
+    @Test
+    @DisplayName("Ensure successful retrieval of CoinGecko service of History of Coin by ID and specific Date")
+    void whenGetCoinHistoryByIdAndDate_ThenItShouldCallAndFetchSuccessfully() {
+        CoinHistoryById expectedObject = Instancio.create(CoinHistoryById.class);
+        HistoryCoinDTO filterDTO = Instancio.create(HistoryCoinDTO.class);
+        given(httpServiceCallMock.getMonoObject(eq("getHistoryOfCoinById"
+                + filterDTO.getUrlFilterString()), eq(CoinHistoryById.class))).willReturn(Mono.just(expectedObject));
+
+        Mono<CoinHistoryById> actualObject = coinsGeckoService.getCoinHistoryByIdAndDate(filterDTO);
+
+        CoinsTestUtils.assertMonoSuccess(actualObject, coinHistoryById -> {
+            assertTrue(Optional.ofNullable(coinHistoryById.getId()).isPresent(), "Coin ID should not be null");
+            assertTrue(Optional.ofNullable(coinHistoryById.getImage()).isPresent(), "Name should not be null");
+            assertEquals(coinHistoryById.getId(), expectedObject.getId());
+            assertTrue(Optional.ofNullable(coinHistoryById.getLocalization())
+                    .map(localization -> !localization.isEmpty())
+                    .orElse(false), "Localization should not be empty");
+        });
+    }
+
+    @Test
+    @DisplayName("Handle 4xx errors when retrieving CoinGecko of of History of Coin by ID and specific Date")
+    void whenGetCoinHistoryByIdAndDate_ThenItShouldCallAndFetchAndHandleOnStatus4xx() {
+        HistoryCoinDTO filterDTO = Instancio.create(HistoryCoinDTO.class);
+        ApiServerErrorException expectedError = new ApiServerErrorException(
+                "Failed to retrieve info of Historic of coin by ID and Date",
+                "Precondition Failed", ErrorTypesEnum.GECKO_CLIENT_ERROR, HttpStatus.PRECONDITION_FAILED);
+        given(httpServiceCallMock.getMonoObject(eq("getHistoryOfCoinById"
+                + filterDTO.getUrlFilterString()), eq(CoinHistoryById.class))).willReturn(Mono.error(expectedError));
+
+        Mono<CoinHistoryById> actualErrorException = coinsGeckoService.getCoinHistoryByIdAndDate(filterDTO);
+
+        CoinsTestUtils.assertService4xxClientError(actualErrorException,
+                "Failed to retrieve info of Historic of coin by ID and Date",
+                ErrorTypesEnum.GECKO_CLIENT_ERROR);
+
+        verify(externalServerConfigMock, times(1)).getHistoryCoin();
+        verify(httpServiceCallMock).getMonoObject("getHistoryOfCoinById"
+                + filterDTO.getUrlFilterString(), CoinHistoryById.class);
+    }
+
+    @Test
+    @DisplayName("Handle 5xx errors when retrieving CoinGecko of of History of Coin by ID and specific Date")
+    void whenGetCoinHistoryByIdAndDate_ThenItShouldCallAndFetchAndHandleOnStatus5xx() {
+        HistoryCoinDTO filterDTO = Instancio.create(HistoryCoinDTO.class);
+        ApiServerErrorException expectedError = new ApiServerErrorException(
+                "An expected error occurred",
+                HttpStatus.NETWORK_AUTHENTICATION_REQUIRED.getReasonPhrase(),
+                ErrorTypesEnum.GECKO_SERVER_ERROR,
+                HttpStatus.NETWORK_AUTHENTICATION_REQUIRED);
+        given(httpServiceCallMock.getMonoObject(eq("getHistoryOfCoinById"
+                + filterDTO.getUrlFilterString()), eq(CoinHistoryById.class))).willReturn(Mono.error(expectedError));
+
+        Mono<CoinHistoryById> actualErrorException = coinsGeckoService.getCoinHistoryByIdAndDate(filterDTO);
+
+        CoinsTestUtils.assertService5xxServerError(actualErrorException,
+                "An expected error occurred",
+                ErrorTypesEnum.GECKO_SERVER_ERROR);
+
+        verify(externalServerConfigMock, times(1)).getHistoryCoin();
+        verify(httpServiceCallMock).getMonoObject("getHistoryOfCoinById"
+                + filterDTO.getUrlFilterString(), CoinHistoryById.class);
+    }
+
 
 }

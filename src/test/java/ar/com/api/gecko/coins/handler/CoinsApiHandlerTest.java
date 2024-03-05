@@ -1,12 +1,10 @@
 package ar.com.api.gecko.coins.handler;
 
 import ar.com.api.gecko.coins.dto.CoinFilterDTO;
+import ar.com.api.gecko.coins.dto.HistoryCoinDTO;
 import ar.com.api.gecko.coins.dto.MarketDTO;
 import ar.com.api.gecko.coins.dto.TickerByIdDTO;
-import ar.com.api.gecko.coins.model.CoinBase;
-import ar.com.api.gecko.coins.model.CoinInfo;
-import ar.com.api.gecko.coins.model.CoinTickerById;
-import ar.com.api.gecko.coins.model.Market;
+import ar.com.api.gecko.coins.model.*;
 import ar.com.api.gecko.coins.services.CoinsGeckoService;
 import ar.com.api.gecko.coins.utils.CoinsTestUtils;
 import ar.com.api.gecko.coins.validators.ValidatorOfDTOComponent;
@@ -176,6 +174,38 @@ class CoinsApiHandlerTest {
         CoinsTestUtils.assertClient5xxServerError(errorResponse,
                 "An expected error occurred in getTickersById",
                 HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @Test
+    @DisplayName("Ensure error handling in getCoinHistoryByIdAndDate returns INTERNAL_SERVER_ERROR")
+    void whenGetHistoryOfCoin_ThenItShouldHandleErrorAndReturnInternalServerError() {
+        given(coinsGeckoServiceMock.getCoinHistoryByIdAndDate(any(HistoryCoinDTO.class)))
+                .willReturn(Mono.error(new RuntimeException("Unexpected error")));
+
+        Mono<ServerResponse> errorResponse = coinsApiHandler.getHistoryOfCoin(serverRequestMock);
+
+        CoinsTestUtils.assertClient5xxServerError(errorResponse,
+                "An expected error occurred in getHistoryOfCoin",
+                HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @Test
+    @DisplayName("Ensure successful retrieval a Historical Coin by ID from and Date service status 200 form Handler")
+    void whenGetHistoryOfCoin_ThenItShouldCallDependenciesAndFetchSuccessfully() {
+        CoinHistoryById expectedObject = Instancio.create(CoinHistoryById.class);
+        HistoryCoinDTO filterDTO = Instancio.create(HistoryCoinDTO.class);
+        given(serverRequestMock.pathVariable(anyString())).willReturn("bitcoin");
+        given(serverRequestMock.queryParam(anyString())).willReturn(Optional.of("30-12-2023"));
+        given(validatorOfDTOComponentMock.validation(any())).willReturn(Mono.just(filterDTO));
+        given(coinsGeckoServiceMock.getCoinHistoryByIdAndDate(any(HistoryCoinDTO.class)))
+                .willReturn(Mono.just(expectedObject));
+
+        Mono<ServerResponse> expectedResponse = coinsApiHandler.getHistoryOfCoin(serverRequestMock);
+
+        CoinsTestUtils.assertMonoSuccess(expectedResponse, serverResponse ->
+                serverResponse.statusCode().is2xxSuccessful());
+
+        verify(coinsGeckoServiceMock, times(1)).getCoinHistoryByIdAndDate(filterDTO);
     }
 
 }
