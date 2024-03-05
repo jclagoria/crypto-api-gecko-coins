@@ -69,14 +69,15 @@ public class CoinsGeckoService {
                 CoinHistoryById.class);
     }
 
-    public Flux<MarketChartById> getMarketChartById(MarketChatBiIdDTO marketChartByIdDTO) {
+    public Mono<MarketChartById> getMarketChartById(MarketChatBiIdDTO marketChartByIdDTO) {
 
         String urlMarketChart = String.format(externalServerConfig.getMarketChartCoin(),
                 marketChartByIdDTO.getIdCoin());
 
         log.info("Fetch Service: {}", urlMarketChart + marketChartByIdDTO.getUrlFilterString());
 
-        return null;
+        return httpServiceCall.getMonoObject(urlMarketChart
+                + marketChartByIdDTO.getUrlFilterString(), MarketChartById.class);
     }
 
     public Flux<MarketChargeRangeById> getMarketChargeRangeById(MarketChargeRangeDTO marketRangeDTO) {
