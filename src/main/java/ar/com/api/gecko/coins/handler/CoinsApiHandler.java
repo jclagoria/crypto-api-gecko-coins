@@ -38,8 +38,8 @@ public class CoinsApiHandler {
                 .doOnSubscribe(subscription -> log.info("Retrieving list of Coins"))
                 .switchIfEmpty(ServerResponse.notFound().build())
                 .onErrorResume(error -> Mono.error(
-                        new ApiCustomException("An expected error occurred in getListOfCoins",
-                                HttpStatus.INTERNAL_SERVER_ERROR)
+                        new ApiClientErrorException("An expected error occurred in getListOfCoins",
+                                HttpStatus.INTERNAL_SERVER_ERROR, ErrorTypesEnum.API_SERVER_ERROR)
                 ));
     }
 
@@ -93,7 +93,8 @@ public class CoinsApiHandler {
                 .flatMap(coinsGeckoService::getTickerById)
                 .flatMap(tickerById -> ServerResponse.ok()
                         .contentType(MediaType.APPLICATION_JSON)
-                        .bodyValue(tickerById)).switchIfEmpty(ServerResponse.notFound().build())
+                        .bodyValue(tickerById))
+                .switchIfEmpty(ServerResponse.notFound().build())
                 .doOnSubscribe(subscription -> log.info("Retrieving info of Tickers by ID"))
                 .onErrorResume(error -> Mono
                         .error(new ApiClientErrorException("An expected error occurred in getTickersById",
@@ -104,20 +105,23 @@ public class CoinsApiHandler {
 
     public Mono<ServerResponse> getHistoryOfCoin(ServerRequest sRequest) {
 
-        log.info("In getHistoryOfCoin");
+        log.info("Fetching History by ID Coin and Date from CoinGecko API");
 
-        HistoryCoinDTO historyCoinDTO = HistoryCoinDTO
-                .builder()
-                .idCoin(sRequest.pathVariable("idCoin"))
-                .date(sRequest.queryParam("date").get())
-                .location(sRequest.queryParam("location"))
-                .build();
-
-        return ServerResponse
-                .ok()
-                .body(coinsGeckoService
-                                .getCoinHistoryByIdAndDate(historyCoinDTO),
-                        CoinHistoryById.class);
+        return Mono.just(sRequest)
+                .flatMap(HandleUtils::createHistoryCoinDTOFromRequest)
+                .flatMap(validatorComponent::validation)
+                .flatMap(coinsGeckoService::getCoinHistoryByIdAndDate)
+                .flatMap(historyCoinID -> ServerResponse.ok()
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue(historyCoinID))
+                .switchIfEmpty(ServerResponse.notFound().build())
+                .doOnSubscribe(subscription ->
+                        log.info("Retrieving info history of Coin by ID and Date"))
+                .onErrorResume(error -> Mono
+                        .error(new ApiClientErrorException("An expected error occurred in getHistoryOfCoin",
+                                HttpStatus.INTERNAL_SERVER_ERROR,
+                                ErrorTypesEnum.API_SERVER_ERROR))
+                );
     }
 
     public Mono<ServerResponse> getMarketChartById(ServerRequest sRequest) {

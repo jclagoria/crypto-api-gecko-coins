@@ -5,19 +5,19 @@ import ar.com.api.gecko.coins.configuration.HttpServiceCall;
 import ar.com.api.gecko.coins.enums.ErrorTypesEnum;
 import ar.com.api.gecko.coins.exception.ApiServerErrorException;
 import ar.com.api.gecko.coins.model.Ping;
+import ar.com.api.gecko.coins.utils.CoinsTestUtils;
 import org.instancio.Instancio;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.http.HttpStatus;
 import reactor.core.publisher.Mono;
-import reactor.test.StepVerifier;
+
+import java.util.Optional;
 
 import static org.mockito.BDDMockito.*;
+import static org.junit.jupiter.api.Assertions.*;
 
 class HealthCoinGeckoApiStatusTest {
 
@@ -50,10 +50,14 @@ class HealthCoinGeckoApiStatusTest {
 
         Mono<Ping> actualObject = healthCoinGeckoApiStatus.getStatusCoinGeckoService();
 
-        StepVerifier
-                .create(actualObject)
-                .expectNext(expectedObjectMock)
-                .verifyComplete();
+        CoinsTestUtils.assertMonoSuccess(actualObject, pingObject -> {
+            Optional.ofNullable(pingObject.getGeckoSays()).ifPresentOrElse(
+                    name -> {},
+                    () -> fail("Ping not be null")
+            );
+            Assertions.assertEquals(expectedObjectMock.getGeckoSays(),
+                    pingObject.getGeckoSays());
+        });
 
         then(externalServerConfigMock).should(times(2)).getPing();
         then(httpServiceCallMock).should(times(1))
@@ -71,13 +75,10 @@ class HealthCoinGeckoApiStatusTest {
 
         Mono<Ping> actualObject = healthCoinGeckoApiStatus.getStatusCoinGeckoService();
 
-        StepVerifier.create(actualObject)
-                .expectErrorMatches(throwable -> throwable instanceof ApiServerErrorException &&
-                        throwable.getMessage().contains(expectedException.getMessage()) &&
-                        ((ApiServerErrorException) throwable).getHttpStatus().is4xxClientError() &&
-                        ((ApiServerErrorException) throwable).getErrorTypesEnum()
-                                .equals(ErrorTypesEnum.GECKO_CLIENT_ERROR))
-                .verify();
+        CoinsTestUtils.assertService4xxClientError(actualObject,
+                expectedException.getMessage(),
+                ErrorTypesEnum.GECKO_CLIENT_ERROR);
+
         then(externalServerConfigMock).should(times(2)).getPing();
         then(httpServiceCallMock).should(times(1))
                 .getMonoObject("pingUrlGeckoMock", Ping.class);
@@ -94,13 +95,10 @@ class HealthCoinGeckoApiStatusTest {
 
         Mono<Ping> actualObject = healthCoinGeckoApiStatus.getStatusCoinGeckoService();
 
-        StepVerifier.create(actualObject)
-                .expectErrorMatches(throwable -> throwable instanceof ApiServerErrorException &&
-                        throwable.getMessage().contains(expectedException.getMessage()) &&
-                        ((ApiServerErrorException) throwable).getHttpStatus().is5xxServerError() &&
-                        ((ApiServerErrorException) throwable).getErrorTypesEnum()
-                                .equals(ErrorTypesEnum.GECKO_SERVER_ERROR))
-                .verify();
+        CoinsTestUtils.assertService5xxServerError(actualObject,
+                expectedException.getMessage(),
+                ErrorTypesEnum.GECKO_SERVER_ERROR);
+
         then(externalServerConfigMock).should(times(2)).getPing();
         then(httpServiceCallMock).should(times(1))
                 .getMonoObject("pingUrlGeckoMock", Ping.class);
