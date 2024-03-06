@@ -1,9 +1,6 @@
 package ar.com.api.gecko.coins.handler.utilities;
 
-import ar.com.api.gecko.coins.dto.CoinFilterDTO;
-import ar.com.api.gecko.coins.dto.HistoryCoinDTO;
-import ar.com.api.gecko.coins.dto.MarketDTO;
-import ar.com.api.gecko.coins.dto.TickerByIdDTO;
+import ar.com.api.gecko.coins.dto.*;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import reactor.core.publisher.Mono;
 
@@ -56,6 +53,16 @@ public class HandleUtils {
                 .idCoin(sRequest.pathVariable("idCoin"))
                 .date(sRequest.queryParam("date").get())
                 .location(sRequest.queryParam("location"))
+                .build());
+    }
+
+    public static Mono<MarketChatBiIdDTO> createMarketChatBiIdDTOFromRequest(ServerRequest sRequest) {
+        return Mono.just(MarketChatBiIdDTO
+                .builder()
+                .idCoin(sRequest.pathVariable("idCoin"))
+                .vsCurrency(sRequest.queryParam("vsCurrency").get())
+                .days(sRequest.queryParam("days").get())
+                .interval(sRequest.queryParam("interval"))
                 .build());
     }
 

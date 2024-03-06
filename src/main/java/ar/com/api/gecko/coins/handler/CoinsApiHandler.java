@@ -125,22 +125,22 @@ public class CoinsApiHandler {
     }
 
     public Mono<ServerResponse> getMarketChartById(ServerRequest sRequest) {
+        log.info("Fetching Market Chart by ID Coin and Currency and Date from CoinGecko API");
 
-        log.info("In getMarketChartById");
-
-        MarketChatBiIdDTO marketChartDTO = MarketChatBiIdDTO
-                .builder()
-                .idCoin(sRequest.pathVariable("idCoin"))
-                .vsCurrency(sRequest.queryParam("vsCurrency").get())
-                .days(Long.valueOf(sRequest.queryParam("days").get()))
-                .interval(sRequest.queryParam("interval"))
-                .build();
-
-        return ServerResponse
-                .ok()
-                .body(
-                        coinsGeckoService.getMarketChartById(marketChartDTO),
-                        MarketChartById.class);
+        return Mono.just(sRequest)
+                .flatMap(HandleUtils::createMarketChatBiIdDTOFromRequest)
+                .flatMap(validatorComponent::validation)
+                .flatMap(coinsGeckoService::getMarketChartById)
+                .flatMap(marketChartById -> ServerResponse.ok()
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue(marketChartById))
+                .switchIfEmpty(ServerResponse.notFound().build())
+                .doOnSubscribe(subscription -> log.info("Retrieving info Market Chart by Ic and Currency and Days"))
+                .onErrorResume(error -> Mono
+                        .error(new ApiClientErrorException("An expected error occurred in getMarketChartById",
+                                HttpStatus.INTERNAL_SERVER_ERROR,
+                                ErrorTypesEnum.API_SERVER_ERROR))
+                );
     }
 
     public Mono<ServerResponse> getMarketChartRangeById(ServerRequest sRequest) {

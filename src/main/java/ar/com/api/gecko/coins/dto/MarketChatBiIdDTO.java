@@ -19,7 +19,7 @@ public class MarketChatBiIdDTO implements IFilterDTO {
     private String vsCurrency;
     @NotBlank(message = "Day cannot be blanc.")
     @NotEmpty(message = "Day cannot be empty.")
-    private long days;
+    private String days;
     private Optional<String> interval;
 
     @Override

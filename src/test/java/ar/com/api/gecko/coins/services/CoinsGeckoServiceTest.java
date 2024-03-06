@@ -2,10 +2,7 @@ package ar.com.api.gecko.coins.services;
 
 import ar.com.api.gecko.coins.configuration.ExternalServerConfig;
 import ar.com.api.gecko.coins.configuration.HttpServiceCall;
-import ar.com.api.gecko.coins.dto.CoinFilterDTO;
-import ar.com.api.gecko.coins.dto.HistoryCoinDTO;
-import ar.com.api.gecko.coins.dto.MarketDTO;
-import ar.com.api.gecko.coins.dto.TickerByIdDTO;
+import ar.com.api.gecko.coins.dto.*;
 import ar.com.api.gecko.coins.enums.ErrorTypesEnum;
 import ar.com.api.gecko.coins.exception.ApiServerErrorException;
 import ar.com.api.gecko.coins.model.*;
@@ -43,7 +40,8 @@ class CoinsGeckoServiceTest {
         given(externalServerConfigMock.getMarkets()).willReturn("listOfMarketsUrlMock");
         given(externalServerConfigMock.getCoinById()).willReturn("getCoinByIdUrlMock");
         given(externalServerConfigMock.getTickersById()).willReturn("getTickersByIdUrlMock");
-        given(externalServerConfigMock.getHistoryCoin()).willReturn("getHistoryOfCoinById");
+        given(externalServerConfigMock.getHistoryCoin()).willReturn("getHistoryOfCoinByIdMock");
+        given(externalServerConfigMock.getMarketChartCoin()).willReturn("getMarketChartByIdCurrencyDaysMock");
     }
 
     @AfterEach
@@ -321,7 +319,7 @@ class CoinsGeckoServiceTest {
     void whenGetCoinHistoryByIdAndDate_ThenItShouldCallAndFetchSuccessfully() {
         CoinHistoryById expectedObject = Instancio.create(CoinHistoryById.class);
         HistoryCoinDTO filterDTO = Instancio.create(HistoryCoinDTO.class);
-        given(httpServiceCallMock.getMonoObject(eq("getHistoryOfCoinById"
+        given(httpServiceCallMock.getMonoObject(eq("getHistoryOfCoinByIdMock"
                 + filterDTO.getUrlFilterString()), eq(CoinHistoryById.class))).willReturn(Mono.just(expectedObject));
 
         Mono<CoinHistoryById> actualObject = coinsGeckoService.getCoinHistoryByIdAndDate(filterDTO);
@@ -334,6 +332,10 @@ class CoinsGeckoServiceTest {
                     .map(localization -> !localization.isEmpty())
                     .orElse(false), "Localization should not be empty");
         });
+
+        verify(externalServerConfigMock, times(1)).getHistoryCoin();
+        verify(httpServiceCallMock).getMonoObject("getHistoryOfCoinByIdMock"
+                + filterDTO.getUrlFilterString(), CoinHistoryById.class);
     }
 
     @Test
@@ -343,7 +345,7 @@ class CoinsGeckoServiceTest {
         ApiServerErrorException expectedError = new ApiServerErrorException(
                 "Failed to retrieve info of Historic of coin by ID and Date",
                 "Precondition Failed", ErrorTypesEnum.GECKO_CLIENT_ERROR, HttpStatus.PRECONDITION_FAILED);
-        given(httpServiceCallMock.getMonoObject(eq("getHistoryOfCoinById"
+        given(httpServiceCallMock.getMonoObject(eq("getHistoryOfCoinByIdMock"
                 + filterDTO.getUrlFilterString()), eq(CoinHistoryById.class))).willReturn(Mono.error(expectedError));
 
         Mono<CoinHistoryById> actualErrorException = coinsGeckoService.getCoinHistoryByIdAndDate(filterDTO);
@@ -353,7 +355,7 @@ class CoinsGeckoServiceTest {
                 ErrorTypesEnum.GECKO_CLIENT_ERROR);
 
         verify(externalServerConfigMock, times(1)).getHistoryCoin();
-        verify(httpServiceCallMock).getMonoObject("getHistoryOfCoinById"
+        verify(httpServiceCallMock).getMonoObject("getHistoryOfCoinByIdMock"
                 + filterDTO.getUrlFilterString(), CoinHistoryById.class);
     }
 
@@ -366,7 +368,7 @@ class CoinsGeckoServiceTest {
                 HttpStatus.NETWORK_AUTHENTICATION_REQUIRED.getReasonPhrase(),
                 ErrorTypesEnum.GECKO_SERVER_ERROR,
                 HttpStatus.NETWORK_AUTHENTICATION_REQUIRED);
-        given(httpServiceCallMock.getMonoObject(eq("getHistoryOfCoinById"
+        given(httpServiceCallMock.getMonoObject(eq("getHistoryOfCoinByIdMock"
                 + filterDTO.getUrlFilterString()), eq(CoinHistoryById.class))).willReturn(Mono.error(expectedError));
 
         Mono<CoinHistoryById> actualErrorException = coinsGeckoService.getCoinHistoryByIdAndDate(filterDTO);
@@ -376,9 +378,84 @@ class CoinsGeckoServiceTest {
                 ErrorTypesEnum.GECKO_SERVER_ERROR);
 
         verify(externalServerConfigMock, times(1)).getHistoryCoin();
-        verify(httpServiceCallMock).getMonoObject("getHistoryOfCoinById"
+        verify(httpServiceCallMock).getMonoObject("getHistoryOfCoinByIdMock"
                 + filterDTO.getUrlFilterString(), CoinHistoryById.class);
     }
 
+    @Test
+    @DisplayName("Ensure successful retrieval of CoinGecko service of Market Chart By Coin ID and Currency and cant of days")
+    void whenGetMarketChartById_ThenItShouldCallAndFetchSuccessfully() {
+        MarketChartById expectedObject = Instancio.create(MarketChartById.class);
+        MarketChatBiIdDTO filterDTO = Instancio.create(MarketChatBiIdDTO.class);
+        given(httpServiceCallMock.getMonoObject(eq("getMarketChartByIdCurrencyDaysMock" +
+                filterDTO.getUrlFilterString()) , eq(MarketChartById.class))).willReturn(Mono.just(expectedObject));
+
+        Mono<MarketChartById> actualObject = coinsGeckoService.getMarketChartById(filterDTO);
+
+        CoinsTestUtils.assertMonoSuccess(actualObject, marketChartById -> {
+            assertTrue(Optional.ofNullable(marketChartById.getMarketCaps()).isPresent(),
+                    "Market Caps should not be null");
+            assertTrue(Optional.of(marketChartById.getMarketCaps())
+                    .map(marketChart -> !marketChart
+                            .isEmpty()).orElse(false), "List of MarketChar should not be empty");
+            assertTrue(Optional.of(marketChartById.getMarketCaps()).map(marketChart ->
+                            marketChart.containsAll(expectedObject.getMarketCaps())).orElse(false),
+                    "The list of received objects is not equal to the expected one");
+            assertTrue(Optional.of(marketChartById.getPrices())
+                    .map(prices -> !prices
+                            .isEmpty()).orElse(false), "List of Prices should not be empty");
+            assertTrue(Optional.of(marketChartById.getTotalVolumes())
+                    .map(totalVolumes -> !totalVolumes
+                            .isEmpty()).orElse(false), "List of Total Volumes should not be empty");
+        });
+
+        verify(externalServerConfigMock, times(1)).getMarketChartCoin();
+        verify(httpServiceCallMock).getMonoObject("getMarketChartByIdCurrencyDaysMock" +
+                filterDTO.getUrlFilterString(), MarketChartById.class);
+    }
+
+    @Test
+    @DisplayName("Handle 4xx errors when retrieving CoinGecko of Market Chart By Coin ID and Currency and cant of days")
+    void whenGetMarketChartById_ThenItShouldCallAndFetchAndHandleOnStatus4xx() {
+        MarketChatBiIdDTO filterDTO = Instancio.create(MarketChatBiIdDTO.class);
+        ApiServerErrorException expectedError = new ApiServerErrorException(
+                "Failed to retrieve info of market Chart of coin by ID and Currency and Days",
+                "Bad Request", ErrorTypesEnum.GECKO_CLIENT_ERROR,
+                HttpStatus.BAD_REQUEST);
+        given(httpServiceCallMock.getMonoObject(eq("getMarketChartByIdCurrencyDaysMock"
+                + filterDTO.getUrlFilterString()), eq(MarketChartById.class))).willReturn(Mono.error(expectedError));
+
+        Mono<MarketChartById> actualErrorException = coinsGeckoService.getMarketChartById(filterDTO);
+
+        CoinsTestUtils.assertService4xxClientError(actualErrorException,
+                "Failed to retrieve info of market Chart of coin by ID and Currency and Days",
+                ErrorTypesEnum.GECKO_CLIENT_ERROR);
+
+        verify(externalServerConfigMock, times(1)).getMarketChartCoin();
+        verify(httpServiceCallMock).getMonoObject("getMarketChartByIdCurrencyDaysMock" +
+                filterDTO.getUrlFilterString(), MarketChartById.class);
+    }
+
+    @Test
+    @DisplayName("Handle 5xx errors when retrieving CoinGecko of Market Chart By Coin ID and Currency and cant of days")
+    void whenGetMarketChartById_ThenItShouldCallAndFetchAndHandleOnStatus5xx() {
+        MarketChatBiIdDTO filterDTO = Instancio.create(MarketChatBiIdDTO.class);
+        ApiServerErrorException expectedError = new ApiServerErrorException(
+                "An expected error occurred",
+                "Internal Server Error", ErrorTypesEnum.GECKO_SERVER_ERROR,
+                HttpStatus.INTERNAL_SERVER_ERROR);
+        given(httpServiceCallMock.getMonoObject(eq("getMarketChartByIdCurrencyDaysMock"
+                + filterDTO.getUrlFilterString()), eq(MarketChartById.class))).willReturn(Mono.error(expectedError));
+
+        Mono<MarketChartById> actualErrorException = coinsGeckoService.getMarketChartById(filterDTO);
+
+        CoinsTestUtils.assertService5xxServerError(actualErrorException,
+                "An expected error occurred",
+                ErrorTypesEnum.GECKO_SERVER_ERROR);
+
+        verify(externalServerConfigMock, times(1)).getMarketChartCoin();
+        verify(httpServiceCallMock).getMonoObject("getMarketChartByIdCurrencyDaysMock" +
+                filterDTO.getUrlFilterString(), MarketChartById.class);
+    }
 
 }
