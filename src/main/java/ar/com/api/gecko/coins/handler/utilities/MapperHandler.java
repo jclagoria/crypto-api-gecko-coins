@@ -4,7 +4,7 @@ import ar.com.api.gecko.coins.dto.*;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import reactor.core.publisher.Mono;
 
-public class HandleUtils {
+public class MapperHandler {
 
     public static Mono<MarketDTO> createMarketDTOFromRequest(ServerRequest request) {
         return Mono.just(MarketDTO.builder()
@@ -73,6 +73,16 @@ public class HandleUtils {
                 .vsCurrency(sRequest.queryParam("vsCurrency").get())
                 .fromDate(sRequest.queryParam("fromDate").get())
                 .toDate(sRequest.queryParam("toDate").get())
+                .precision(sRequest.queryParam("precision"))
+                .build());
+    }
+
+    public static Mono<OHLCByIdDTO> createOHLCByIdDTOFromRequest(ServerRequest sRequest) {
+        return Mono.just(OHLCByIdDTO
+                .builder()
+                .idCoin(sRequest.pathVariable("idCoin"))
+                .vsCurrency(sRequest.queryParam("vsCurrency").get())
+                .days(sRequest.queryParam("days").get())
                 .precision(sRequest.queryParam("precision"))
                 .build());
     }

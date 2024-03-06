@@ -272,4 +272,37 @@ class CoinsApiHandlerTest {
                 HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+    @Test
+    @DisplayName("Ensure successful retrieval a OHLC  By Coin ID and Currency and Days service status 200 form Handler")
+    void whenGetOHLCById_ThenItShouldCallDependenciesAndFetchSuccessfully() {
+        Collection<String> expectedObject = Instancio.ofList(String.class).size(5).create();
+        OHLCByIdDTO filterDTO = Instancio.create(OHLCByIdDTO.class);
+        given(serverRequestMock.pathVariable(anyString())).willReturn("bitcoin");
+        given(serverRequestMock.queryParam(anyString())).willReturn(Optional.of("usd"));
+        given(serverRequestMock.queryParam(anyString())).willReturn(Optional.of("7"));
+        given(validatorOfDTOComponentMock.validation(any())).willReturn(Mono.just(filterDTO));
+        given(coinsGeckoServiceMock.getOHLCById(any(OHLCByIdDTO.class)))
+                .willReturn(Flux.fromIterable(expectedObject));
+
+        Mono<ServerResponse> actualResponse = coinsApiHandler.getOHLCById(serverRequestMock);
+
+        CoinsTestUtils.assertMonoSuccess(actualResponse, serverResponse ->
+                serverResponse.statusCode().is2xxSuccessful());
+
+        verify(coinsGeckoServiceMock, times(1)).getOHLCById(filterDTO);
+    }
+
+    @Test
+    @DisplayName("Ensure error handling in getOHLCById returns INTERNAL_SERVER_ERROR")
+    void whenGetOHLCById_ThenItShouldHandleErrorAndReturnInternalServerError() {
+        given(coinsGeckoServiceMock.getOHLCById(any(OHLCByIdDTO.class)))
+                .willReturn(Flux.error(new RuntimeException("Unexpected Error")));
+
+        Mono<ServerResponse> actualErrorResponse = coinsApiHandler.getOHLCById(serverRequestMock);
+
+        CoinsTestUtils.assertClient5xxServerError(actualErrorResponse,
+                "An expected error occurred in getOHLCById",
+                HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
 }

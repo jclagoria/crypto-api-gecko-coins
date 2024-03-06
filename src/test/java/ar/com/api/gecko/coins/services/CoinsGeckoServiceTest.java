@@ -43,6 +43,7 @@ class CoinsGeckoServiceTest {
         given(externalServerConfigMock.getHistoryCoin()).willReturn("getHistoryOfCoinByIdMock");
         given(externalServerConfigMock.getMarketChartCoin()).willReturn("getMarketChartByIdCurrencyDaysMock");
         given(externalServerConfigMock.getMarketChartRange()).willReturn("getMarketChartRangeByIdCurrencyAndRangeDate");
+        given(externalServerConfigMock.getOhlcById()).willReturn("getOHLCUrlMock");
     }
 
     @AfterEach
@@ -187,7 +188,7 @@ class CoinsGeckoServiceTest {
                     name -> {},
                     () -> fail("Assert Platform not be null"));
 
-            Optional.ofNullable(coinInfoExpected.getSentimentVotesDownPercentage()).ifPresentOrElse(
+            Optional.of(coinInfoExpected.getSentimentVotesDownPercentage()).ifPresentOrElse(
                     sentimentVotesDown -> {},
                     () -> fail("Sentiment Vote Down not be null")
             );
@@ -536,6 +537,73 @@ class CoinsGeckoServiceTest {
         verify(externalServerConfigMock, times(1)).getMarketChartRange();
         verify(httpServiceCallMock).getMonoObject("getMarketChartRangeByIdCurrencyAndRangeDate" +
                 filterDTO.getUrlFilterString(), MarketChargeRangeById.class);
+    }
+
+    @Test
+    @DisplayName("Ensure successful retrieval of CoinGecko service of OHLCB By Coin ID and Currency and range and days")
+    void whenGetOHLCById_ThenItShouldCallAndFetchSuccessfully() {
+        Collection<String> expectedCollection = Instancio.ofList(String.class).size(7).create();
+        OHLCByIdDTO filterDTO = Instancio.create(OHLCByIdDTO.class);
+        given(httpServiceCallMock.getFluxObject(eq("getOHLCUrlMock" +
+                filterDTO.getUrlFilterString()), eq(String.class)))
+                .willReturn(Flux.fromIterable(expectedCollection));
+
+        Flux<String> actualObject = coinsGeckoService.getOHLCById(filterDTO);
+
+        CoinsTestUtils.assertFluxSuccess( actualObject, listOfOHLC -> {
+            Assertions.assertEquals(expectedCollection.size(), listOfOHLC.size());
+            Assertions.assertTrue(listOfOHLC.containsAll(expectedCollection));
+        });
+
+        verify(externalServerConfigMock, times(1)).getOhlcById();
+        verify(httpServiceCallMock).getFluxObject("getOHLCUrlMock" +
+                filterDTO.getUrlFilterString(), String.class);
+    }
+
+    @Test
+    @DisplayName("Handle 4xx errors when retrieving CoinGecko of OHLC By Coin ID and Currency and Days")
+    void whenGetOHLCById_ThenItShouldCallAndFetchAndHandleOnStatus4xx() {
+        OHLCByIdDTO filterDTO = Instancio.create(OHLCByIdDTO.class);
+        ApiServerErrorException expectedError = new ApiServerErrorException(
+                "Failed to retrieve info of OHLC By Coin ID and Currency and Days",
+                "Bad Request",
+                ErrorTypesEnum.GECKO_CLIENT_ERROR,
+                HttpStatus.BAD_REQUEST);
+        given(httpServiceCallMock.getFluxObject(eq("getOHLCUrlMock" +
+                filterDTO.getUrlFilterString()), eq(String.class))).willReturn(Flux.error(expectedError));
+
+        Flux<String> actualErrorException = coinsGeckoService.getOHLCById(filterDTO);
+
+        CoinsTestUtils.assertService4xxClientError(actualErrorException,
+                "Failed to retrieve info of OHLC By Coin ID and Currency and Days",
+                ErrorTypesEnum.GECKO_CLIENT_ERROR);
+
+        verify(externalServerConfigMock, times(1)).getOhlcById();
+        verify(httpServiceCallMock).getFluxObject("getOHLCUrlMock" +
+                filterDTO.getUrlFilterString(), String.class);
+    }
+
+    @Test
+    @DisplayName("Handle 5xx errors when retrieving CoinGecko of OHLC By Coin ID and Currency and Days")
+    void whenGetOHLCById_ThenItShouldCallAndFetchAndHandleOnStatus5xx() {
+        OHLCByIdDTO filterDTO = Instancio.create(OHLCByIdDTO.class);
+        ApiServerErrorException expectedError = new ApiServerErrorException(
+                "An expected error occurred",
+                "Internal Server Error",
+                ErrorTypesEnum.GECKO_SERVER_ERROR,
+                HttpStatus.INTERNAL_SERVER_ERROR);
+        given(httpServiceCallMock.getFluxObject(eq("getOHLCUrlMock" +
+                filterDTO.getUrlFilterString()), eq(String.class))).willReturn(Flux.error(expectedError));
+
+        Flux<String> actualErrorException = coinsGeckoService.getOHLCById(filterDTO);
+
+        CoinsTestUtils.assertService5xxServerError(actualErrorException,
+                "An expected error occurred",
+                ErrorTypesEnum.GECKO_SERVER_ERROR);
+
+        verify(externalServerConfigMock, times(1)).getOhlcById();
+        verify(httpServiceCallMock).getFluxObject("getOHLCUrlMock" +
+                filterDTO.getUrlFilterString(), String.class);
     }
 
 }
