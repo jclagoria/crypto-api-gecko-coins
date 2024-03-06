@@ -80,7 +80,7 @@ public class CoinsGeckoService {
                 + marketChartByIdDTO.getUrlFilterString(), MarketChartById.class);
     }
 
-    public Flux<MarketChargeRangeById> getMarketChargeRangeById(MarketChargeRangeDTO marketRangeDTO) {
+    public Mono<MarketChargeRangeById> getMarketChargeRangeById(MarketChargeRangeDTO marketRangeDTO) {
 
         String urlMarketChartRange = String.format(
                 externalServerConfig.getMarketChartRange(),
@@ -88,7 +88,8 @@ public class CoinsGeckoService {
 
         log.info("Fetch Service: {}", urlMarketChartRange + marketRangeDTO.getUrlFilterString());
 
-        return null;
+        return httpServiceCall.getMonoObject(urlMarketChartRange +
+                marketRangeDTO.getUrlFilterString(), MarketChargeRangeById.class);
     }
 
     public Flux<String> getOHLCById(OHLCByIdDTO ohlcByIdDTO) {

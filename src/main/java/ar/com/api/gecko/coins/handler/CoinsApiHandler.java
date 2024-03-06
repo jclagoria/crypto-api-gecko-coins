@@ -153,6 +153,7 @@ public class CoinsApiHandler {
                 .vsCurrency(sRequest.queryParam("vsCurrency").get())
                 .fromDate(sRequest.queryParam("fromDate").get())
                 .toDate(sRequest.queryParam("toDate").get())
+                .precision(sRequest.queryParam("precision"))
                 .build();
 
         return ServerResponse
