@@ -42,6 +42,7 @@ class CoinsGeckoServiceTest {
         given(externalServerConfigMock.getTickersById()).willReturn("getTickersByIdUrlMock");
         given(externalServerConfigMock.getHistoryCoin()).willReturn("getHistoryOfCoinByIdMock");
         given(externalServerConfigMock.getMarketChartCoin()).willReturn("getMarketChartByIdCurrencyDaysMock");
+        given(externalServerConfigMock.getMarketChartRange()).willReturn("getMarketChartRangeByIdCurrencyAndRangeDate");
     }
 
     @AfterEach
@@ -456,6 +457,85 @@ class CoinsGeckoServiceTest {
         verify(externalServerConfigMock, times(1)).getMarketChartCoin();
         verify(httpServiceCallMock).getMonoObject("getMarketChartByIdCurrencyDaysMock" +
                 filterDTO.getUrlFilterString(), MarketChartById.class);
+    }
+
+    @Test
+    @DisplayName("Ensure successful retrieval of CoinGecko service of Market Chart Range By Coin ID and Currency and range of dates")
+    void whenGetMarketChargeRangeById_ThenItShouldCallAndFetchSuccessfully() {
+        MarketChargeRangeById expectedObject = Instancio.create(MarketChargeRangeById.class);
+        MarketChargeRangeDTO filterDTO = Instancio.create(MarketChargeRangeDTO.class);
+        given(httpServiceCallMock.getMonoObject(eq("getMarketChartRangeByIdCurrencyAndRangeDate" +
+                filterDTO.getUrlFilterString()), eq(MarketChargeRangeById.class)))
+                .willReturn(Mono.just(expectedObject));
+
+        Mono<MarketChargeRangeById> actualObject = coinsGeckoService.getMarketChargeRangeById(filterDTO);
+
+        CoinsTestUtils.assertMonoSuccess(actualObject, marketChargeRangeById -> {
+            assertTrue(Optional.ofNullable(marketChargeRangeById.getMarketCaps()).isPresent(),
+                    "Market Caps should not be null");
+            assertTrue(Optional.of(marketChargeRangeById.getTotalVolumes())
+                            .map(listTotalVolumes -> listTotalVolumes.size()
+                                    == expectedObject.getTotalVolumes().size())
+                            .orElse(false),
+                    "The number of objects in a received list is not equal to the expected one.");
+            assertTrue(Optional.ofNullable(marketChargeRangeById.getPrices()).isPresent(),
+                    "List of Prices should not be null");
+            assertTrue(Optional.of(marketChargeRangeById.getPrices())
+                            .map(listPrices -> listPrices.size() == expectedObject.getPrices().size())
+                            .orElse(false),
+                    "The number of objects in a received list is not equal to the expected one.");
+        });
+
+        verify(externalServerConfigMock, times(1)).getMarketChartRange();
+        verify(httpServiceCallMock).getMonoObject("getMarketChartRangeByIdCurrencyAndRangeDate" +
+                filterDTO.getUrlFilterString(), MarketChargeRangeById.class);
+    }
+
+    @Test
+    @DisplayName("Handle 4xx errors when retrieving CoinGecko of Market Chart Range By Coin ID and Currency and range of dates")
+    void whenGetMarketChargeRangeById_ThenItShouldCallAndFetchAndHandleOnStatus4xx() {
+        MarketChargeRangeDTO filterDTO = Instancio.create(MarketChargeRangeDTO.class);
+        ApiServerErrorException expectedError = new ApiServerErrorException(
+                "Failed to retrieve info of market Chart of coin by ID and Currency and ranges of dates",
+                "Not Acceptable", ErrorTypesEnum.GECKO_CLIENT_ERROR,
+                HttpStatus.NOT_ACCEPTABLE);
+        given(httpServiceCallMock.getMonoObject(eq("getMarketChartRangeByIdCurrencyAndRangeDate" +
+                filterDTO.getUrlFilterString()), eq(MarketChargeRangeById.class)))
+                .willReturn(Mono.error(expectedError));
+
+        Mono<MarketChargeRangeById> actualErrorException = coinsGeckoService.getMarketChargeRangeById(filterDTO);
+
+        CoinsTestUtils.assertService4xxClientError(actualErrorException,
+                "Failed to retrieve info of market Chart of coin by ID and Currency and ranges of dates",
+                ErrorTypesEnum.GECKO_CLIENT_ERROR);
+
+        verify(externalServerConfigMock, times(1)).getMarketChartRange();
+        verify(httpServiceCallMock).getMonoObject("getMarketChartRangeByIdCurrencyAndRangeDate" +
+                filterDTO.getUrlFilterString(), MarketChargeRangeById.class);
+    }
+
+    @Test
+    @DisplayName("Handle 5xx errors when retrieving CoinGecko of Market Chart Range By Coin ID and Currency and range of dates")
+    void whenGetMarketChargeRangeById_ThenItShouldCallAndFetchAndHandleOnStatus5xx() {
+        MarketChargeRangeDTO filterDTO = Instancio.create(MarketChargeRangeDTO.class);
+        ApiServerErrorException expectedError = new ApiServerErrorException(
+                "An expected error occurred",
+                "Bad Gateway",
+                ErrorTypesEnum.GECKO_SERVER_ERROR,
+                HttpStatus.BAD_GATEWAY);
+        given(httpServiceCallMock.getMonoObject(eq("getMarketChartRangeByIdCurrencyAndRangeDate" +
+                filterDTO.getUrlFilterString()), eq(MarketChargeRangeById.class)))
+                .willReturn(Mono.error(expectedError));
+
+        Mono<MarketChargeRangeById> actualErrorException = coinsGeckoService.getMarketChargeRangeById(filterDTO);
+
+        CoinsTestUtils.assertService5xxServerError(actualErrorException,
+                "An expected error occurred",
+                ErrorTypesEnum.GECKO_SERVER_ERROR);
+
+        verify(externalServerConfigMock, times(1)).getMarketChartRange();
+        verify(httpServiceCallMock).getMonoObject("getMarketChartRangeByIdCurrencyAndRangeDate" +
+                filterDTO.getUrlFilterString(), MarketChargeRangeById.class);
     }
 
 }

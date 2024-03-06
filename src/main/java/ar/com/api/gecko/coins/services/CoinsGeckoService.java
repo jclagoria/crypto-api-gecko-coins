@@ -84,7 +84,7 @@ public class CoinsGeckoService {
 
         String urlMarketChartRange = String.format(
                 externalServerConfig.getMarketChartRange(),
-                marketRangeDTO.getIdCurrency());
+                marketRangeDTO.getIdCoin());
 
         log.info("Fetch Service: {}", urlMarketChartRange + marketRangeDTO.getUrlFilterString());
 

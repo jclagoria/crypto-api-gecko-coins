@@ -238,4 +238,38 @@ class CoinsApiHandlerTest {
                 HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+    @Test
+    @DisplayName("Ensure successful retrieval a Market Chart Range By Coin ID and Currency and Range Days service status 200 form Handler")
+    void whenGetMarketChartRangeById_ThenItShouldCallDependenciesAndFetchSuccessfully() {
+        MarketChargeRangeById expectedObject = Instancio.create(MarketChargeRangeById.class);
+        MarketChargeRangeDTO filterDTO = Instancio.create(MarketChargeRangeDTO.class);
+        given(serverRequestMock.pathVariable(anyString())).willReturn("bitcoin");
+        given(serverRequestMock.queryParam(anyString())).willReturn(Optional.of("usd"));
+        given(serverRequestMock.queryParam(anyString())).willReturn(Optional.of("1392577232"));
+        given(serverRequestMock.queryParam(anyString())).willReturn(Optional.of("1422577232"));
+        given(validatorOfDTOComponentMock.validation(any())).willReturn(Mono.just(filterDTO));
+        given(coinsGeckoServiceMock.getMarketChargeRangeById(any(MarketChargeRangeDTO.class)))
+                .willReturn(Mono.just(expectedObject));
+
+        Mono<ServerResponse> expectedResponse = coinsApiHandler.getMarketChartRangeById(serverRequestMock);
+
+        CoinsTestUtils.assertMonoSuccess(expectedResponse, serverResponse ->
+                serverResponse.statusCode().is2xxSuccessful());
+
+        verify(coinsGeckoServiceMock, times(1)).getMarketChargeRangeById(filterDTO);
+    }
+
+    @Test
+    @DisplayName("Ensure error handling in getMarketChartRangeById returns INTERNAL_SERVER_ERROR")
+    void whenGetMarketChartRangeById_ThenItShouldHandleErrorAndReturnInternalServerError() {
+        given(coinsGeckoServiceMock.getMarketChargeRangeById(any(MarketChargeRangeDTO.class)))
+                .willReturn(Mono.error(new RuntimeException("Unexpected Error")));
+
+        Mono<ServerResponse> errorResponse = coinsApiHandler.getMarketChartRangeById(serverRequestMock);
+
+        CoinsTestUtils.assertClient5xxServerError(errorResponse,
+                "An expected error occurred in getMarketChartRangeById",
+                HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
 }

@@ -66,4 +66,15 @@ public class HandleUtils {
                 .build());
     }
 
+    public static Mono<MarketChargeRangeDTO> createMarketChargeRangeDTOFromRequest(ServerRequest sRequest) {
+        return Mono.just(MarketChargeRangeDTO
+                .builder()
+                .idCoin(sRequest.pathVariable("idCoin"))
+                .vsCurrency(sRequest.queryParam("vsCurrency").get())
+                .fromDate(sRequest.queryParam("fromDate").get())
+                .toDate(sRequest.queryParam("toDate").get())
+                .precision(sRequest.queryParam("precision"))
+                .build());
+    }
+
 }
