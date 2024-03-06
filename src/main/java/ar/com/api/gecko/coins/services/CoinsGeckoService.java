@@ -100,7 +100,9 @@ public class CoinsGeckoService {
 
         log.info("Fetch Service: {}", urlOHCL + ohlcByIdDTO.getUrlFilterString());
 
-        return null;
+        Flux<String> lista = httpServiceCall.getFluxObject( urlOHCL + ohlcByIdDTO.getUrlFilterString(), String.class);
+
+        return httpServiceCall.getFluxObject( urlOHCL + ohlcByIdDTO.getUrlFilterString(), String.class);
     }
 
 }

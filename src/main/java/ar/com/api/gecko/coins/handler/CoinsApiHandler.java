@@ -1,9 +1,8 @@
 package ar.com.api.gecko.coins.handler;
 
-import ar.com.api.gecko.coins.dto.OHLCByIdDTO;
 import ar.com.api.gecko.coins.enums.ErrorTypesEnum;
 import ar.com.api.gecko.coins.exception.ApiClientErrorException;
-import ar.com.api.gecko.coins.handler.utilities.HandleUtils;
+import ar.com.api.gecko.coins.handler.utilities.MapperHandler;
 import ar.com.api.gecko.coins.services.CoinsGeckoService;
 import ar.com.api.gecko.coins.validators.ValidatorOfDTOComponent;
 import lombok.AllArgsConstructor;
@@ -43,7 +42,7 @@ public class CoinsApiHandler {
         log.info("Fetching List of Market by Currency from CoinGecko API");
 
         return Mono.just(sRequest)
-                .flatMap(HandleUtils::createMarketDTOFromRequest)
+                .flatMap(MapperHandler::createMarketDTOFromRequest)
                 .flatMap(validatorComponent::validation)
                 .flatMapMany(coinsGeckoService::getListOfMarkets)
                 .collectList()
@@ -63,7 +62,7 @@ public class CoinsApiHandler {
         log.info("Fetching Coin by ID from CoinGecko API");
 
         return Mono.just(sRequest)
-                .flatMap(HandleUtils::createCoinFilterDTOFromRequest)
+                .flatMap(MapperHandler::createCoinFilterDTOFromRequest)
                 .flatMap(validatorComponent::validation)
                 .flatMap(coinsGeckoService::getCoinById)
                 .flatMap(coinInf -> ServerResponse.ok()
@@ -82,7 +81,7 @@ public class CoinsApiHandler {
         log.info("Fetching Tickers by ID from In CoinGecko API");
 
         return Mono.just(sRequest)
-                .flatMap(HandleUtils::createTickersByIdDTOFromRequest)
+                .flatMap(MapperHandler::createTickersByIdDTOFromRequest)
                 .flatMap(validatorComponent::validation)
                 .flatMap(coinsGeckoService::getTickerById)
                 .flatMap(tickerById -> ServerResponse.ok()
@@ -101,7 +100,7 @@ public class CoinsApiHandler {
         log.info("Fetching History by ID Coin and Date from CoinGecko API");
 
         return Mono.just(sRequest)
-                .flatMap(HandleUtils::createHistoryCoinDTOFromRequest)
+                .flatMap(MapperHandler::createHistoryCoinDTOFromRequest)
                 .flatMap(validatorComponent::validation)
                 .flatMap(coinsGeckoService::getCoinHistoryByIdAndDate)
                 .flatMap(historyCoinID -> ServerResponse.ok()
@@ -121,7 +120,7 @@ public class CoinsApiHandler {
         log.info("Fetching Market Chart by ID Coin and Currency and Date from CoinGecko API");
 
         return Mono.just(sRequest)
-                .flatMap(HandleUtils::createMarketChatBiIdDTOFromRequest)
+                .flatMap(MapperHandler::createMarketChatBiIdDTOFromRequest)
                 .flatMap(validatorComponent::validation)
                 .flatMap(coinsGeckoService::getMarketChartById)
                 .flatMap(marketChartById -> ServerResponse.ok()
@@ -140,7 +139,7 @@ public class CoinsApiHandler {
         log.info("Fetching Market Chart Range by ID Coin and Currency and Range Dates from CoinGecko API");
 
         return Mono.just(sRequest)
-                .flatMap(HandleUtils::createMarketChargeRangeDTOFromRequest)
+                .flatMap(MapperHandler::createMarketChargeRangeDTOFromRequest)
                 .flatMap(validatorComponent::validation)
                 .flatMap(coinsGeckoService::getMarketChargeRangeById)
                 .flatMap(marketChargeRangeById -> ServerResponse.ok()
@@ -157,21 +156,23 @@ public class CoinsApiHandler {
     }
 
     public Mono<ServerResponse> getOHLCById(ServerRequest sRequest) {
+        log.info("Fetching List of Strings by Coin ID and Currency and days");
 
-        log.info("In getOHLCById");
-
-        OHLCByIdDTO ohlcByIdDTO = OHLCByIdDTO
-                .builder()
-                .idCoin(sRequest.pathVariable("idCoin"))
-                .vsCurrency(sRequest.queryParam("vsCurrency").get())
-                .days(sRequest.queryParam("days").get())
-                .build();
-
-        return ServerResponse
-                .ok()
-                .body(
-                        coinsGeckoService.getOHLCById(ohlcByIdDTO),
-                        String.class
+        return Mono.just(sRequest)
+                .flatMap(MapperHandler::createOHLCByIdDTOFromRequest)
+                .flatMap(validatorComponent::validation)
+                .flatMapMany(coinsGeckoService::getOHLCById)
+                .collectList()
+                .flatMap(listOHLC -> ServerResponse.ok()
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue(listOHLC.get(0)))
+                .switchIfEmpty(ServerResponse.notFound().build())
+                .doOnSubscribe(subscription ->
+                        log.info("Retrieving list of OHLC by Coin ID and Currency and days"))
+                .onErrorResume(error -> Mono
+                        .error(new ApiClientErrorException("An expected error occurred in getOHLCById",
+                                HttpStatus.INTERNAL_SERVER_ERROR,
+                                ErrorTypesEnum.API_SERVER_ERROR))
                 );
     }
 
