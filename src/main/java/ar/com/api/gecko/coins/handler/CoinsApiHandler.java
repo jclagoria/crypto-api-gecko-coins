@@ -1,13 +1,10 @@
 package ar.com.api.gecko.coins.handler;
 
-import ar.com.api.gecko.coins.dto.*;
+import ar.com.api.gecko.coins.dto.OHLCByIdDTO;
 import ar.com.api.gecko.coins.enums.ErrorTypesEnum;
 import ar.com.api.gecko.coins.exception.ApiClientErrorException;
-import ar.com.api.gecko.coins.exception.ApiCustomException;
-import ar.com.api.gecko.coins.exception.ApiValidatorException;
-import ar.com.api.gecko.coins.model.*;
-import ar.com.api.gecko.coins.services.CoinsGeckoService;
 import ar.com.api.gecko.coins.handler.utilities.HandleUtils;
+import ar.com.api.gecko.coins.services.CoinsGeckoService;
 import ar.com.api.gecko.coins.validators.ValidatorOfDTOComponent;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,7 +24,6 @@ public class CoinsApiHandler {
     private final ValidatorOfDTOComponent validatorComponent;
 
     public Mono<ServerResponse> getListOfCoins(ServerRequest sRequest) {
-
         log.info("In getListOfCoins {}", sRequest.path());
 
         return coinsGeckoService.getListOfCoins()
@@ -64,7 +60,6 @@ public class CoinsApiHandler {
     }
 
     public Mono<ServerResponse> getCoinById(ServerRequest sRequest) {
-
         log.info("Fetching Coin by ID from CoinGecko API");
 
         return Mono.just(sRequest)
@@ -84,7 +79,6 @@ public class CoinsApiHandler {
     }
 
     public Mono<ServerResponse> getTickersById(ServerRequest sRequest) {
-
         log.info("Fetching Tickers by ID from In CoinGecko API");
 
         return Mono.just(sRequest)
@@ -104,7 +98,6 @@ public class CoinsApiHandler {
     }
 
     public Mono<ServerResponse> getHistoryOfCoin(ServerRequest sRequest) {
-
         log.info("Fetching History by ID Coin and Date from CoinGecko API");
 
         return Mono.just(sRequest)
@@ -144,21 +137,23 @@ public class CoinsApiHandler {
     }
 
     public Mono<ServerResponse> getMarketChartRangeById(ServerRequest sRequest) {
+        log.info("Fetching Market Chart Range by ID Coin and Currency and Range Dates from CoinGecko API");
 
-        log.info("In getMarketChartRangeById");
-
-        MarketChargeRangeDTO marketChargeRangeDTO = MarketChargeRangeDTO
-                .builder()
-                .idCurrency(sRequest.pathVariable("idCoin"))
-                .vsCurrency(sRequest.queryParam("vsCurrency").get())
-                .fromDate(sRequest.queryParam("fromDate").get())
-                .toDate(sRequest.queryParam("toDate").get())
-                .build();
-
-        return ServerResponse
-                .ok()
-                .body(
-                        coinsGeckoService.getMarketChargeRangeById(marketChargeRangeDTO), MarketChargeRangeById.class);
+        return Mono.just(sRequest)
+                .flatMap(HandleUtils::createMarketChargeRangeDTOFromRequest)
+                .flatMap(validatorComponent::validation)
+                .flatMap(coinsGeckoService::getMarketChargeRangeById)
+                .flatMap(marketChargeRangeById -> ServerResponse.ok()
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .bodyValue(marketChargeRangeById))
+                .switchIfEmpty(ServerResponse.notFound().build())
+                .doOnSubscribe(subscription ->
+                        log.info("Market Chart Range by ID Coin and Currency and Range Dates"))
+                .onErrorResume(error -> Mono
+                        .error(new ApiClientErrorException("An expected error occurred in getMarketChartRangeById",
+                                HttpStatus.INTERNAL_SERVER_ERROR,
+                                ErrorTypesEnum.API_SERVER_ERROR))
+                );
     }
 
     public Mono<ServerResponse> getOHLCById(ServerRequest sRequest) {
