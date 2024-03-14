@@ -64,7 +64,7 @@ public class GlobalApiExceptionHandler {
 
         return response.writeWith(
                 Mono.just(response.bufferFactory()
-                        .wrap(new ObjectMapper().writeValueAsBytes(response)))
+                        .wrap(new ObjectMapper().writeValueAsBytes(apiErrorResponse)))
         );
     }
 

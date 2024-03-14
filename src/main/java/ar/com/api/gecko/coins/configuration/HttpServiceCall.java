@@ -62,7 +62,7 @@ public class HttpServiceCall {
                         response -> response.bodyToMono(Map.class)
                                 .flatMap(errorMessage -> handleResponseError(errorMessage,
                                         (HttpStatus) response.statusCode(),
-                                        ErrorTypesEnum.API_SERVER_ERROR))
+                                        ErrorTypesEnum.GECKO_SERVER_ERROR))
                 );
     }
 
